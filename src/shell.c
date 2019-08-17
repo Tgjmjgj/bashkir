@@ -65,7 +65,7 @@ int main() {
     //print_pipeline(pipeline);
 
     /* pipes[i] redirects from pipeline->cmds[i] to pipeline->cmds[i+1]. */
-    int (*pipes)[2] = calloc(sizeof(int[2]), n_pipes);
+    int (*pipes)[2] = (int(*)[2])calloc(sizeof(int[2]), n_pipes);
 
     for (int i = 1; i < pipeline->n_cmds; ++i) {
       pipe(pipes[i-1]);  

@@ -35,7 +35,7 @@ cmd_struct* parse_command(char* str) {
    * Using calloc to ensure it's zero-initialised, which is important because
    * execvp expects a NULL-terminated array of arguments.
    */
-  cmd_struct* ret = calloc(sizeof(cmd_struct) + MAX_LEN * sizeof(char*), 1);
+  cmd_struct* ret = (cmd_struct*)calloc(sizeof(cmd_struct) + MAX_LEN * sizeof(char*), 1);
 
   while ((token = next_non_empty(&copy))) {
     ret->args[i++] = token;
@@ -63,7 +63,7 @@ pipeline_struct* parse_pipeline(char *str) {
 
   ++n_cmds;  /* There is one more command than there are pipe characters. */
 
-  ret = calloc(sizeof(pipeline_struct) + n_cmds * sizeof(cmd_struct*), 1);
+  ret = (pipeline_struct*)calloc(sizeof(pipeline_struct) + n_cmds * sizeof(cmd_struct*), 1);
   ret->n_cmds = n_cmds;
 
   while((cmd_str = strsep(&copy, "|"))) {
