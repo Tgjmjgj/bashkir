@@ -22,10 +22,9 @@ vector<Command> BashkirCmdParser::parse(string inputStr)
         Command cmd = Command();
         int argPos, argStartPos = 0;
         string arg;
-        vector<char*> args;
         do
         {
-            argPos = inputStr.find_first_of(' ', argStartPos);
+            argPos = cmdStr.find_first_of(' ', argStartPos);
             if (argPos == string::npos)
                 arg = cmdStr.substr(argStartPos);
             else
@@ -33,13 +32,12 @@ vector<Command> BashkirCmdParser::parse(string inputStr)
                 arg = cmdStr.substr(argStartPos, argPos - argStartPos);
                 argStartPos = argPos + 1;
             }
-            char* cArg = new char[arg.length()];
-            strcpy(cArg, arg.c_str());
-            args.push_back(cArg);
+            if (arg == "")
+                continue;
+            cmd.args.push_back(arg);
         } while (argPos != string::npos);
-        cmd.args = new char*[args.size()];
-        std::copy(args.begin(), args.end(), cmd.args);
         cmd.exe = cmd.args[0];
+        cmd.args.erase(cmd.args.begin());
         cmds.push_back(cmd);
     } while (pos != string::npos);
     return cmds;

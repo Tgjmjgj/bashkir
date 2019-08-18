@@ -11,6 +11,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 endif()
 
 include_directories(includes)
@@ -18,6 +19,9 @@ file(GLOB_RECURSE SOURCES (src/*.cpp))
 
 message("CMAKE BUILD TYPE is ${CMAKE_BUILD_TYPE}")
 
+
 add_executable(${EXE} ${SOURCES})
 
 target_compile_features(${EXE} PUBLIC cxx_std_17)
+
+target_link_libraries(${EXE} stdc++fs)

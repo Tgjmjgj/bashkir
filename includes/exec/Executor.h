@@ -10,8 +10,8 @@ public:
     Executor();
     ~Executor();
     int execute(Command& cmd);
-
 private:
     void createPipe();
     void closePipe();
+
 };

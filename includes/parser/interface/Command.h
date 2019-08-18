@@ -4,6 +4,6 @@
 
 struct Command
 {
-    const char* exe;
-    char** args;
+    std::string exe;
+    std::vector<std::string> args;
 };
