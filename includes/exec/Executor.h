@@ -7,13 +7,13 @@ namespace bashkir
 class Executor
 {
 public:
-    int out;
     int in;
+    int out;
 
     Executor();
     ~Executor();
-    int execute(Command &cmd);
-    void waitSubproc();
+    int execute(const Command &cmd);
+    void waitSubproc() const;
 
 private:
     void createPipe();

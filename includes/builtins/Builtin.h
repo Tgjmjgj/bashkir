@@ -8,7 +8,8 @@ namespace bashkir::builtins
 class BuiltIn
 {
 public:
-    virtual int exec(std::vector<std::string> arg) = 0;
+    virtual ~BuiltIn() = default;
+    virtual int exec(const std::vector<std::string> &arg) = 0;
 };
 
-} // namespace builtins
+} // namespace bashkir::builtins

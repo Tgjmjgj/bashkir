@@ -4,15 +4,18 @@
 
 namespace bashkir::util
 {
-    inline char* const* NullTerminatedCStrArr(std::vector<std::string> strs)
+
+inline char *const *createExecArgs(const std::string &program, const std::vector<std::string> &args)
+{
+    char const **ret_arr = new char const *[args.size() + 2];
+    for (std::size_t i = 1; i < args.size(); ++i)
     {
-        char** retArr = new char*[strs.size() + 1];
-        for (int i = 0; i < strs.size(); ++i)
-        {
-            retArr[i] = new char[strs[i].length() + 1];
-            strcpy(retArr[i], strs[i].c_str());
-        }
-        retArr[strs.size()] = NULL;
-        return retArr;
+        ret_arr[i] = args[i].c_str();
     }
+    ret_arr[0] = program.c_str();
+    ret_arr[args.size() + 1] = NULL;
+    auto pcpc = const_cast<char *const *>(ret_arr);
+    return pcpc;
 }
+
+} // namespace bashkir::util

@@ -11,18 +11,21 @@ namespace bashkir::builtins
 class Cd : public BuiltIn
 {
 private:
-    std::experimental::filesystem::path prevDir;
-    std::experimental::filesystem::path currentDir;
+    std::experimental::filesystem::path prev_dir;
+    std::experimental::filesystem::path current_dir;
     std::map<std::string, std::experimental::filesystem::path> checkpoints;
+
 public:
     Cd();
-    int exec(std::vector<std::string> args);
+    ~Cd() {}
+    int exec(const std::vector<std::string> &args);
+
 private:
-    std::experimental::filesystem::path evaluatePath(std::string pathArg);
-    int changePath(std::experimental::filesystem::path toGo);
-    void setCheckpoint(std::string name);
-    std::experimental::filesystem::path getCheckpoint(std::string name);
-    bool isCheckpoint(std::string name);
+    std::experimental::filesystem::path evaluatePath(const std::string &path_arg) const;
+    int changePath(const std::experimental::filesystem::path &new_path);
+    void setCheckpoint(const std::string &name);
+    std::experimental::filesystem::path getCheckpoint(const std::string &name) const noexcept(false);
+    bool isCheckpoint(const std::string &name) const;
 };
 
-} // namespace builtins
+} // namespace bashkir::builtins

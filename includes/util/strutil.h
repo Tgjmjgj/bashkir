@@ -5,18 +5,20 @@
 namespace bashkir::util
 {
 
-inline void ltrim(std::string &str)
+inline std::string& ltrim(std::string &str)
 {
     str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int ch) {
         return !std::isspace(ch);
     }));
+    return str;
 }
 
-inline void rtrim(std::string &str)
+inline std::string& rtrim(std::string &str)
 {
     str.erase(std::find_if(str.rbegin(), str.rend(), [](int ch) {
         return !std::isspace(ch);
     }).base(), str.end());
+    return str;
 }
 
 inline void trim(std::string &str)
@@ -25,4 +27,4 @@ inline void trim(std::string &str)
     rtrim(str);
 }
 
-};
+} // namespace bashkir::util

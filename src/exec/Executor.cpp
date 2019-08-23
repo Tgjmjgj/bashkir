@@ -9,32 +9,29 @@
 namespace bashkir
 {
 
-Executor::Executor()
-{
-    this->in = -1;
-    this->out = -1;
-}
+Executor::Executor() : in(-1), out(-1) {}
 
-int Executor::execute(Command &cmd)
+int Executor::execute(const Command &cmd)
 {
     // this->createPipe();
     // dup2(this->in, STDIN_FILENO);
     // dup2(STDOUT_FILENO, this->out);
-    const __pid_t childId = fork();
-    if (childId)
+    const __pid_t child_id = fork();
+    if (child_id)
     {
-        if (childId == -1)
+        if (child_id == -1)
+        {
             std::cout << "Something get wrongs!" << std::endl;
-        return childId;
+        }
+        return child_id;
     }
     else
     {
         // dup2(this->in, STDIN_FILENO);
         // dup2(this->out, STDOUT_FILENO);
-        cmd.args.insert(cmd.args.begin(), cmd.exe);
-        char* const* args = util::NullTerminatedCStrArr(cmd.args);
-        int errCode = execvp(cmd.exe.c_str(), args);
-        if (errCode == - 1)
+        char *const *args = util::createExecArgs(cmd.exe, cmd.args);
+        int err_code = execvp(cmd.exe.c_str(), args);
+        if (err_code == -1)
         {
             switch (errno)
             {
@@ -42,7 +39,8 @@ int Executor::execute(Command &cmd)
                 std::cout << "Command '" << cmd.exe << "' not found." << std::endl;
                 break;
             default:
-                std::cerr << cmd.exe << " return error code " << errno << ": " << std::strerror(errno) << std::endl;
+                std::cerr << cmd.exe << " return error code " << errno << ": "
+                          << std::strerror(errno) << std::endl;
                 break;
             }
         }
@@ -50,17 +48,17 @@ int Executor::execute(Command &cmd)
     }
 }
 
-void Executor::waitSubproc()
+void Executor::waitSubproc() const
 {
     wait(NULL);
 }
 
 void Executor::createPipe()
 {
-    int *pipeIds = new int[2];
-    pipe(pipeIds);
-    this->in = pipeIds[0];
-    this->out = pipeIds[1];
+    int *pipe_ids = new int[2];
+    pipe(pipe_ids);
+    this->in = pipe_ids[0];
+    this->out = pipe_ids[1];
 }
 
 void Executor::closePipe()

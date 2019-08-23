@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <map>
+#include <memory>
 #include "parser/interface/ICmdParser.h"
 #include "builtins/Builtin.h"
 
@@ -10,21 +11,20 @@ namespace bashkir
 class Shell
 {
 private:
-    ICmdParser *cmdParser;
+    std::unique_ptr<ICmdParser> parser;
     std::string dir;
-    std::map<std::string, builtins::BuiltIn *> builtinMap;
+    std::map<std::string, std::shared_ptr<builtins::BuiltIn>> builtins;
 
 public:
     Shell();
-    ~Shell();
     int run();
 
 private:
     void init();
-    int registerBuiltin(std::string name, builtins::BuiltIn *handler);
-    builtins::BuiltIn *findBuiltin(std::string name);
-    void writePrefix();
-    std::string waitInput();
+    int registerBuiltin(const std::string &name, const std::shared_ptr<builtins::BuiltIn> &&handler);
+    std::shared_ptr<builtins::BuiltIn> findBuiltin(const std::string &name) const;
+    void writePrefix() const;
+    std::string waitInput() const;
 };
 
 } // namespace bashkir

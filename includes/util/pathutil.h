@@ -1,23 +1,27 @@
 #pragma once
 #include <string>
 
-namespace bashkir::utils
+namespace bashkir::util
 {
 
 inline std::string& fullToHomeRel(std::string &path)
 {
-    std::string homePath = getenv("HOME");
-    if (path.rfind(homePath) == 0)
-        path.replace(0, homePath.length(), "~");
+    const std::string home_path = getenv("HOME");
+    if (path.rfind(home_path) == 0)
+    {
+        path.replace(0, home_path.length(), "~");
+    }
     return path;
 }
 
-inline std::string& homeRelToFull(std::string &path)
+inline std::string& homeRelToFull(std::string &&path)
 {
-    std::string homePath = getenv("HOME");
+    const std::string home_path = getenv("HOME");
     if (path[0] == '~')
-        path.replace(0, 1, homePath);
+    {
+        path.replace(0, 1, home_path);
+    }
     return path;
 }
 
-} // namespace bashkir::utils
+} // namespace bashkir::util

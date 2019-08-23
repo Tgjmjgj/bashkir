@@ -20,42 +20,46 @@ Shell::Shell()
     this->init();
 }
 
-Shell::~Shell()
-{
-}
-
 void Shell::init()
 {
-    this->cmdParser = new BashkirCmdParser();
-    if (this->registerBuiltin("cd", new builtins::Cd()) == -1)
+    this->parser = std::make_unique<BashkirCmdParser>();
+    if (this->registerBuiltin("cd", std::make_shared<builtins::Cd>()) == -1)
+    {
         std::cerr << "Error with register builtin 'cd'" << std::endl;
-    if (this->registerBuiltin("pwd", new builtins::Pwd()) == -1)
+    }
+    if (this->registerBuiltin("pwd", std::make_shared<builtins::Pwd>()) == -1)
+    {
         std::cerr << "Error with register builtin 'pwd'" << std::endl;
+    }
 }
 
-int Shell::registerBuiltin(std::string name, builtins::BuiltIn *handler)
+int Shell::registerBuiltin(const std::string &name, const std::shared_ptr<builtins::BuiltIn> &&handler)
 {
-    this->builtinMap.insert_or_assign(name, handler);
+    this->builtins.insert_or_assign(name, handler);
     return 0;
 }
 
-builtins::BuiltIn *Shell::findBuiltin(std::string name)
+std::shared_ptr<builtins::BuiltIn> Shell::findBuiltin(const std::string &name) const
 {
-    std::map<std::string, builtins::BuiltIn *>::iterator it = this->builtinMap.find(name);
-    return it == this->builtinMap.end() ? nullptr : it->second;
+    auto it = this->builtins.find(name);
+    return it == this->builtins.end() ? nullptr : it->second;
 }
 
 int Shell::run()
 {
     while (true)
     {
-        std::string input = this->waitInput();
-        auto cmds = this->cmdParser->parse(input);
+        const std::string input = this->waitInput();
+        auto cmds = this->parser->parse(input);
         if (cmds.size() == 0)
+        {
             continue;
-        builtins::BuiltIn *builtin = this->findBuiltin(cmds[0].exe);
+        }
+        auto builtin = this->findBuiltin(cmds[0].exe);
         if (builtin != nullptr)
-            builtin->exec(cmds[0].args);
+        {
+            builtin.get()->exec(cmds[0].args);
+        }
         else
         {
             Executor *exec = new Executor();
@@ -66,7 +70,7 @@ int Shell::run()
     return 0;
 }
 
-std::string Shell::waitInput()
+std::string Shell::waitInput() const
 {
     this->writePrefix();
     std::string buffer = std::string();
@@ -74,10 +78,10 @@ std::string Shell::waitInput()
     return buffer;
 }
 
-void Shell::writePrefix()
+void Shell::writePrefix() const
 {
     std::string cPath = fs::current_path().c_str();
-    cPath = utils::fullToHomeRel(cPath);
+    util::fullToHomeRel(cPath);
     std::cout << "paradox> " << cPath << " $ ";
 }
 

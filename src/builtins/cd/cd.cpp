@@ -9,89 +9,90 @@ namespace bashkir::builtins
 
 Cd::Cd()
 {
-    this->currentDir = this->prevDir = fs::current_path().c_str();
+    this->current_dir = this->prev_dir = fs::current_path().c_str();
 }
 
-int Cd::exec(std::vector<std::string> args)
+int Cd::exec(const std::vector<std::string> &args)
 {
     if (args.empty())
+    {
         return 0;
-    fs::path newPath = this->evaluatePath(args[0]);
-    int retCode = this->changePath(newPath);
-    if (args.size() > 1 and args[1] != "") 
+    }
+    const fs::path new_path = this->evaluatePath(args[0]);
+    const int ret_code = this->changePath(new_path);
+    if (args.size() > 1 and args[1] != "")
+    {
         this->setCheckpoint(args[1]);
-    // int retCode = this->specialCases(args);
-    // fs::path newPath = fs::current_path().append(args[0].c_str());
-    return retCode;
+    }
+    return ret_code;
 }
 
-fs::path Cd::evaluatePath(std::string pathArg)
+fs::path Cd::evaluatePath(const std::string &path_arg) const
 {
-    if (pathArg == "-")
+    if (path_arg == "-")
     {
-        return this->prevDir;
+        return this->prev_dir;
     }
-    fs::path newPath;
-    if (pathArg[0] == '~')
+    fs::path new_path;
+    if (path_arg[0] == '~')
     {
-        newPath = utils::homeRelToFull(pathArg);
+        new_path = util::homeRelToFull(std::string(path_arg));
     }
-    else if (pathArg[0] == '/')
+    else if (path_arg[0] == '/')
     {
-        newPath = pathArg;
+        new_path = path_arg;
     }
     else
     {
-        newPath = fs::current_path().append(pathArg.c_str());
+        new_path = fs::current_path().append(path_arg.c_str());
     }
-    if (pathArg[0] == '@')
+    if (path_arg[0] == '@')
     {
-        if (fs::is_directory(newPath))
-            return newPath;
-        std::string cpName = pathArg.substr(1);
-        if (this->isCheckpoint(cpName))
+        if (fs::is_directory(new_path))
+            return new_path;
+        std::string cp_name = path_arg.substr(1);
+        if (this->isCheckpoint(cp_name))
         {
-            newPath = this->getCheckpoint(cpName);
-            return newPath;
+            new_path = this->getCheckpoint(cp_name);
+            return new_path;
         }
         else
         {
-            std::cout << "There is no checkpoint with name '" << cpName << "'." << std::endl;
-            return this->currentDir;
+            std::cout << "There is no checkpoint with name '" << cp_name << "'." << std::endl;
+            return this->current_dir;
         }
     }
-    return newPath;
+    return new_path;
 }
 
-int Cd::changePath(fs::path toGo)
+int Cd::changePath(const fs::path &togo)
 {
     std::error_code err;
-    fs::current_path(toGo, err);
+    fs::current_path(togo, err);
     if (err.value() != 0)
     {
         std::cout << err.message() << std::endl;
         return -1;
     }
-    this->prevDir = this->currentDir;
-    this->currentDir = toGo;
+    this->prev_dir = this->current_dir;
+    this->current_dir = togo;
     return 0;
 }
 
-void Cd::setCheckpoint(std::string name)
+void Cd::setCheckpoint(const std::string &name)
 {
-    if (name[0] == '@')
-        name = name.substr(1);
-    this->checkpoints.insert_or_assign(name, this->currentDir);
+    std::string cp_name = name.substr(name[0] == '@' ? 1 : 0);
+    this->checkpoints.insert_or_assign(cp_name, this->current_dir);
 }
 
-fs::path Cd::getCheckpoint(std::string name)
+fs::path Cd::getCheckpoint(const std::string &name) const noexcept(false)
 {
-    return this->checkpoints[name];
+    return this->checkpoints.at(name);
 }
 
-bool Cd::isCheckpoint(std::string name)
+bool Cd::isCheckpoint(const std::string &name) const
 {
     return this->checkpoints.find(name) != this->checkpoints.end();
 }
 
-} // namespace builtins
+} // namespace bashkir::builtins
