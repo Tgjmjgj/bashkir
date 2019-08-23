@@ -62,7 +62,7 @@ int Shell::run()
         }
         else
         {
-            Executor *exec = new Executor();
+            std::unique_ptr<Executor> exec = std::make_unique<Executor>();
             exec->execute(cmds[0]);
             exec->waitSubproc();
         }
