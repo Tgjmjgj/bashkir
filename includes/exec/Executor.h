@@ -1,6 +1,9 @@
 #pragma once
 #include "parser/interface/Command.h"
 
+namespace bashkir
+{
+
 class Executor
 {
 public:
@@ -9,9 +12,12 @@ public:
 
     Executor();
     ~Executor();
-    int execute(Command& cmd);
+    int execute(Command &cmd);
+    void waitSubproc();
+
 private:
     void createPipe();
     void closePipe();
-
 };
+
+} // namespace bashkir

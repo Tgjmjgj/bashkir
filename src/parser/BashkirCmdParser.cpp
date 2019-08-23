@@ -5,6 +5,9 @@
 
 using std::string, std::vector;
 
+namespace bashkir
+{
+
 vector<Command> BashkirCmdParser::parse(string inputStr)
 {
     vector<Command> cmds;
@@ -42,3 +45,5 @@ vector<Command> BashkirCmdParser::parse(string inputStr)
     } while (pos != string::npos);
     return cmds;
 }
+
+} // namespace bashkir

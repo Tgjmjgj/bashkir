@@ -1,6 +1,9 @@
 #pragma once
 #include "parser/interface/ICmdParser.h"
 
+namespace bashkir
+{
+
 class BashkirCmdParser : public ICmdParser
 {
 public:
@@ -8,3 +11,5 @@ public:
     ~BashkirCmdParser() {}
     std::vector<Command> parse(std::string inputStr);
 };
+
+} // namespace bashkir

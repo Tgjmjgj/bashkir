@@ -2,16 +2,17 @@
 #include <string>
 #include <vector>
 
-namespace util
+namespace bashkir::util
 {
-    inline char** StdStrVecToCStrArr(std::vector<std::string> strs)
+    inline char* const* NullTerminatedCStrArr(std::vector<std::string> strs)
     {
-        char** retArr = new char*[strs.size()];
+        char** retArr = new char*[strs.size() + 1];
         for (int i = 0; i < strs.size(); ++i)
         {
             retArr[i] = new char[strs[i].length() + 1];
             strcpy(retArr[i], strs[i].c_str());
         }
+        retArr[strs.size()] = NULL;
         return retArr;
     }
 }

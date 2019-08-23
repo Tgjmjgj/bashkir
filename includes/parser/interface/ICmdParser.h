@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 
+namespace bashkir
+{
+
 class ICmdParser
 {
 public:
@@ -11,3 +14,5 @@ public:
 
     virtual std::vector<Command> parse(std::string inputStr) = 0;
 };
+
+} // namespace bashkir

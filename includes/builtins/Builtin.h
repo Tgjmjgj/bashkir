@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-namespace builtins
+namespace bashkir::builtins
 {
 
 class BuiltIn

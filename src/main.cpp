@@ -2,6 +2,6 @@
 
 int main(int argc, char *argv[])
 {
-    Shell *bashkir = new Shell();
+    bashkir::Shell *bashkir = new bashkir::Shell();
     bashkir->run();
 }

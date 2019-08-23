@@ -3,7 +3,7 @@
 #include <vector>
 #include "builtins/Builtin.h"
 
-namespace builtins
+namespace bashkir::builtins
 {
     class Pwd : public BuiltIn
     {

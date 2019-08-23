@@ -1,8 +1,13 @@
-#include "exec/Executor.h"
-#include "util/convutil.h"
 #include <unistd.h>
 #include <iostream>
 #include <string.h>
+#include <sys/wait.h>
+#include <cstring>
+#include "exec/Executor.h"
+#include "util/convutil.h"
+
+namespace bashkir
+{
 
 Executor::Executor()
 {
@@ -27,19 +32,27 @@ int Executor::execute(Command &cmd)
         // dup2(this->in, STDIN_FILENO);
         // dup2(this->out, STDOUT_FILENO);
         cmd.args.insert(cmd.args.begin(), cmd.exe);
-        char** args = util::StdStrVecToCStrArr(cmd.args);
+        char* const* args = util::NullTerminatedCStrArr(cmd.args);
         int errCode = execvp(cmd.exe.c_str(), args);
-        switch (errCode)
+        if (errCode == - 1)
         {
-        case -1:
-            std::cout << "Command '" << cmd.exe << "' not found." << std::endl;
-            break;
-        default:
-            std::cerr << "Execv return error code " << errCode << std::endl;
-            break;
+            switch (errno)
+            {
+            case 2:
+                std::cout << "Command '" << cmd.exe << "' not found." << std::endl;
+                break;
+            default:
+                std::cerr << cmd.exe << " return error code " << errno << ": " << std::strerror(errno) << std::endl;
+                break;
+            }
         }
         return 0;
     }
+}
+
+void Executor::waitSubproc()
+{
+    wait(NULL);
 }
 
 void Executor::createPipe()
@@ -60,3 +73,5 @@ Executor::~Executor()
 {
     this->closePipe();
 }
+
+} // namespace bashkir

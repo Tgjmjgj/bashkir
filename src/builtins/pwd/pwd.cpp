@@ -4,7 +4,7 @@
 
 namespace fs = std::experimental::filesystem;
 
-namespace builtins
+namespace bashkir::builtins
 {
 
 int Pwd::exec(std::vector<std::string> args)

@@ -1,15 +1,18 @@
+#include <iostream>
+#include <unistd.h>
+#include <map>
+#include <experimental/filesystem>
 #include "parser/BashkirCmdParser.h"
 #include "exec/Executor.h"
 #include "Shell.h"
 #include "builtins/cd/cd.h"
 #include "builtins/pwd/pwd.h"
-#include <iostream>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <map>
-#include <experimental/filesystem>
+#include "util/pathutil.h"
 
 namespace fs = std::experimental::filesystem;
+
+namespace bashkir
+{
 
 Shell::Shell()
 {
@@ -30,15 +33,15 @@ void Shell::init()
         std::cerr << "Error with register builtin 'pwd'" << std::endl;
 }
 
-int Shell::registerBuiltin(std::string name, builtins::BuiltIn* handler)
+int Shell::registerBuiltin(std::string name, builtins::BuiltIn *handler)
 {
-    this->builtinMap.insert(std::make_pair(name, handler));
+    this->builtinMap.insert_or_assign(name, handler);
     return 0;
 }
 
-builtins::BuiltIn* Shell::findBuiltin(std::string name)
+builtins::BuiltIn *Shell::findBuiltin(std::string name)
 {
-    std::map<std::string, builtins::BuiltIn*>::iterator it = this->builtinMap.find(name);
+    std::map<std::string, builtins::BuiltIn *>::iterator it = this->builtinMap.find(name);
     return it == this->builtinMap.end() ? nullptr : it->second;
 }
 
@@ -48,14 +51,16 @@ int Shell::run()
     {
         std::string input = this->waitInput();
         auto cmds = this->cmdParser->parse(input);
-        builtins::BuiltIn* builtin = this->findBuiltin(cmds[0].exe);
+        if (cmds.size() == 0)
+            continue;
+        builtins::BuiltIn *builtin = this->findBuiltin(cmds[0].exe);
         if (builtin != nullptr)
             builtin->exec(cmds[0].args);
         else
         {
-            Executor* exec = new Executor();
+            Executor *exec = new Executor();
             exec->execute(cmds[0]);
-            wait(NULL);
+            exec->waitSubproc();
         }
     }
     return 0;
@@ -72,7 +77,8 @@ std::string Shell::waitInput()
 void Shell::writePrefix()
 {
     std::string cPath = fs::current_path().c_str();
-    if (cPath == getenv("HOME"))
-        cPath = "~";
+    cPath = utils::fullToHomeRel(cPath);
     std::cout << "paradox> " << cPath << " $ ";
 }
+
+} // namespace bashkir
