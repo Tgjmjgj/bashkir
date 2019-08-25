@@ -18,4 +18,8 @@ inline char *const *createExecArgs(const std::string &program, const std::vector
     return pcpc;
 }
 
+inline std::size_t int2size_t(int val) {
+    return (val < 0) ? __SIZE_MAX__ : static_cast<std::size_t>(static_cast<unsigned int>(val));
+}
+
 } // namespace bashkir::util

@@ -46,6 +46,9 @@
         "algorithm": "cpp",
         "map": "cpp",
         "memory": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "bitset": "cpp",
+        "iterator": "cpp",
+        "regex": "cpp"
     }
 }

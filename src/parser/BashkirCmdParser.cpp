@@ -1,8 +1,10 @@
 #include <string.h>
 #include <regex>
+#include <cctype>
 #include "parser/BashkirCmdParser.h"
 #include "parser/ItemsRange.h"
 #include "util/pathutil.h"
+#include "util/convutil.h"
 
 #include <iostream>
 
@@ -10,9 +12,10 @@ namespace bashkir
 {
 
 BashkirCmdParser::BashkirCmdParser(std::shared_ptr<std::vector<std::string>> hist)
-    : history(hist) {
-        std::cout << this->history.use_count() << std::endl;
-    }
+    : history(hist)
+{
+    std::cout << this->history.use_count() << std::endl;
+}
 
 std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
 {
@@ -79,6 +82,34 @@ bool BashkirCmdParser::substitution(std::string &argument) const
         }
         default:
             break;
+        }
+        bool reverse = false;
+        if (argument[pos + 1] == '-')
+        {
+            reverse = true;
+        }
+        const std::size_t rv_shift = reverse ? 2 : 1;
+        if (std::isdigit(argument[pos + rv_shift]) != 0)
+        {
+            std::size_t end = pos + rv_shift;
+            while (std::isdigit(argument[end]) != 0)
+            {
+                end++;
+            }
+            const std::string str_num = argument.substr(pos + rv_shift, end - pos - rv_shift);
+            const std::size_t num = util::int2size_t(std::stoi(str_num));
+            const std::size_t hist_index = reverse ? this->history->size() - num : num - 1;
+            if (hist_index < this->history->size())
+            {
+                const std::string hist_item = (*(this->history))[hist_index];
+                argument.replace(pos, 1 + str_num.length(), hist_item);
+                is_changed = true;
+            }
+            else
+            {
+                std::cout << "bashkir: command " << (reverse ? "-" : "") << num
+                          << " is not found in history." << std::endl;
+            }
         }
         pos = argument.find('!', pos + 1);
     }
