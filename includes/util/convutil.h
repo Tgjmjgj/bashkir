@@ -8,9 +8,9 @@ namespace bashkir::util
 inline char *const *createExecArgs(const std::string &program, const std::vector<std::string> &args)
 {
     char const **ret_arr = new char const *[args.size() + 2];
-    for (std::size_t i = 1; i < args.size(); ++i)
+    for (std::size_t i = 0; i < args.size(); ++i)
     {
-        ret_arr[i] = args[i].c_str();
+        ret_arr[1 + i] = args[i].c_str();
     }
     ret_arr[0] = program.c_str();
     ret_arr[args.size() + 1] = NULL;

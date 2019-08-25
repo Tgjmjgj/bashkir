@@ -14,7 +14,7 @@ private:
     std::unique_ptr<ICmdParser> parser;
     std::string dir;
     std::map<std::string, std::shared_ptr<builtins::BuiltIn>> builtins;
-
+    std::shared_ptr<std::vector<std::string>> history;
 public:
     Shell();
     int run();

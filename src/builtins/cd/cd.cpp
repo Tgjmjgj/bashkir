@@ -34,11 +34,7 @@ fs::path Cd::evaluatePath(const std::string &path_arg) const
         return this->prev_dir;
     }
     fs::path new_path;
-    if (path_arg[0] == '~')
-    {
-        new_path = util::homeRelToFull(std::string(path_arg));
-    }
-    else if (path_arg[0] == '/')
+    if (path_arg[0] == '/')
     {
         new_path = path_arg;
     }

@@ -22,7 +22,8 @@ Shell::Shell()
 
 void Shell::init()
 {
-    this->parser = std::make_unique<BashkirCmdParser>();
+    this->history = std::make_shared<std::vector<std::string>>();
+    this->parser = std::make_unique<BashkirCmdParser>(this->history);
     if (this->registerBuiltin("cd", std::make_shared<builtins::Cd>()) == -1)
     {
         std::cerr << "Error with register builtin 'cd'" << std::endl;
