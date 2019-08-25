@@ -12,7 +12,7 @@ public:
     ICmdParser() {}
     virtual ~ICmdParser() {}
 
-    virtual std::vector<Command> parse(const std::string &input_str) const = 0;
+    virtual std::vector<Command> parse(const std::string &input_str) = 0;
 };
 
 } // namespace bashkir

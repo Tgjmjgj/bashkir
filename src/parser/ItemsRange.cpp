@@ -1,8 +1,8 @@
 #include <string>
 #include <memory>
-#include "util/strutil.h"
+#include "parser/ItemsRange.h"
 
-namespace bashkir::util::_inner
+namespace bashkir::_inner
 {
 void ItemsRange::ItemsRangeIterator::nextItem()
 {
@@ -10,13 +10,13 @@ void ItemsRange::ItemsRangeIterator::nextItem()
     this->storedCurrentItem = std::string();
     this->length = 0;
     size_t i = this->start;
-    for (; i < this->fullString.length(); ++i)
+    for (; i < this->fullString->length(); ++i)
     {
-        if (this->fullString[i] == ' ')
+        if ((*(this->fullString))[i] == ' ' && this->length == 0)
         {
             this->length = i - this->start;
         }
-        else if (i != this->start && this->fullString[i - 1] == ' ' && this->fullString[i] != ' ')
+        else if (i != this->start && (*(this->fullString))[i - 1] == ' ' && (*(this->fullString))[i] != ' ')
         {
             break;
         }
@@ -32,8 +32,8 @@ void ItemsRange::ItemsRangeIterator::nextItem()
     }
 }
 
-ItemsRange::ItemsRangeIterator::ItemsRangeIterator(std::string &str, std::size_t index)
-    : fullString(str), next(index), is_end(str.length() == index)
+ItemsRange::ItemsRangeIterator::ItemsRangeIterator(std::shared_ptr<std::string> &str_ptr, std::size_t index)
+    : fullString(str_ptr), next(index), is_end(str_ptr->length() == index)
 {
     this->nextItem();
 }
@@ -68,16 +68,23 @@ std::string ItemsRange::ItemsRangeIterator::getValue()
     {
         return this->storedCurrentItem;
     }
-    this->storedCurrentItem = this->fullString.substr(this->start, this->length);
+    this->storedCurrentItem = this->fullString->substr(this->start, this->length);
     return this->storedCurrentItem;
 }
 
 void ItemsRange::ItemsRangeIterator::setValue(const std::string &str)
 {
-    this->fullString.replace(this->start, this->length, str);
+    if (this->getValue() != str)
+    {
+        this->fullString->replace(this->start, this->length, str);
+        this->next = this->length = this->start;
+    }
 }
 
-ItemsRange::ItemsRange(const std::string &str) : copy_str(std::string(str)) {}
+ItemsRange::ItemsRange(const std::string &str)
+{
+    this->copy_str = std::shared_ptr<std::string>(new std::string(str));
+}
 
 ItemsRange::ItemsRangeIterator ItemsRange::begin() noexcept
 {
@@ -86,7 +93,12 @@ ItemsRange::ItemsRangeIterator ItemsRange::begin() noexcept
 
 ItemsRange::ItemsRangeIterator ItemsRange::end() noexcept
 {
-    return ItemsRangeIterator(this->copy_str, this->copy_str.length());
+    return ItemsRangeIterator(this->copy_str, this->copy_str->length());
 }
 
-} // namespace bashkir::util::_inner
+std::string ItemsRange::getCompletedCommandString() const
+{
+    return *(this->copy_str);
+}
+
+} // namespace bashkir::_inner

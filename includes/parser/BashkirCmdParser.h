@@ -11,8 +11,9 @@ class BashkirCmdParser : public ICmdParser
 public:
     BashkirCmdParser(std::shared_ptr<std::vector<std::string>> hist);
     ~BashkirCmdParser() {}
-    std::vector<Command> parse(const std::string &input_str) const;
-    std::string& substitutions(std::string &argument) const;
+    std::vector<Command> parse(const std::string &input_str);
+    void postprocess(std::vector<Command> &cmds) const;
+    bool substitution(std::string &argument) const;
 
 };
 

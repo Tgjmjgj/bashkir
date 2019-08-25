@@ -56,6 +56,7 @@ int Shell::run()
         {
             continue;
         }
+        std::cout << this->history->back() << std::endl;
         auto builtin = this->findBuiltin(cmds[0].exe);
         if (builtin != nullptr)
         {

@@ -1,11 +1,12 @@
 #pragma once
 #include <string>
+#include <regex>
 #include "util/strutil.h"
 
 namespace bashkir::util
 {
 
-inline std::string& fullToHomeRel(std::string &path)
+inline std::string &fullToHomeRel(std::string &path)
 {
     const std::string home_path = getenv("HOME");
     if (startswith(path, home_path))
@@ -15,12 +16,20 @@ inline std::string& fullToHomeRel(std::string &path)
     return path;
 }
 
-inline std::string& homeRelToFull(std::string &path)
+inline std::string &tryHomeRelToFull(std::string &path)
 {
     const std::string home_path = getenv("HOME");
-    if (path[0] == '~')
+    if (path == "~")
     {
         path.replace(0, 1, home_path);
+    }
+    else
+    {
+        std::regex re("~/(?:(?:(?:[^/\n])+/)*(?:(?:[^/\n])+)?)?");
+        if (std::regex_match(path, re))
+        {
+            path.replace(0, 1, home_path);
+        }
     }
     return path;
 }
