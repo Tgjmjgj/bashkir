@@ -12,7 +12,7 @@ namespace bashkir
 {
 
 BashkirCmdParser::BashkirCmdParser(std::shared_ptr<std::vector<std::string>> hist)
-    : history(hist)
+    : history(std::move(hist))
 {
     std::cout << this->history.use_count() << std::endl;
 }

@@ -2,12 +2,13 @@
 #include <unistd.h>
 #include <map>
 #include <experimental/filesystem>
+#include "Shell.h"
 #include "parser/BashkirCmdParser.h"
 #include "exec/Executor.h"
-#include "Shell.h"
+#include "util/pathutil.h"
 #include "builtins/cd/cd.h"
 #include "builtins/pwd/pwd.h"
-#include "util/pathutil.h"
+#include "builtins/history/history.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -31,6 +32,10 @@ void Shell::init()
     if (this->registerBuiltin("pwd", std::make_shared<builtins::Pwd>()) == -1)
     {
         std::cerr << "Error with register builtin 'pwd'" << std::endl;
+    }
+    if (this->registerBuiltin("history", std::make_shared<builtins::History>(this->history)) == -1)
+    {
+        std::cerr << "Error with register builtin 'history'" << std::endl;
     }
 }
 
