@@ -12,7 +12,47 @@ Cd::Cd()
     this->current_dir = this->prev_dir = fs::current_path().c_str();
 }
 
-int Cd::exec(const std::vector<std::string> &args)
+int Cd::exec(const Command &cmd)
+{
+    if (cmd.exe == "cd")
+    {
+        return this->exec_cd(cmd.args);
+    }
+    if (cmd.exe == "pushd")
+    {
+        return this->exec_pushd(cmd.args);
+    }
+    if (cmd.exe == "popd")
+    {
+        return this->exec_popd(cmd.args);
+    }
+    return -1;
+}
+
+int Cd::exec_pushd(const std::vector<std::string> &args)
+{
+    const fs::path copy_of_current_dir = this->current_dir;
+    const int ret_code = args.empty() ? 0 : this->exec_cd(args);
+    if (ret_code == 0)
+    {
+        this->dir_stack.push(copy_of_current_dir);
+    }
+    return ret_code;
+}
+
+int Cd::exec_popd(const std::vector<std::string> &args)
+{
+    if (this->dir_stack.empty())
+    {
+        std::cout << "popd: the directory stack is empty" << std::endl;
+        return -1;
+    }
+    const fs::path last_stack_dir = this->dir_stack.top();
+    this->dir_stack.pop();
+    return this->changePath(last_stack_dir);
+}
+
+int Cd::exec_cd(const std::vector<std::string> &args)
 {
     if (args.empty())
     {

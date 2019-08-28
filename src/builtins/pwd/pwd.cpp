@@ -7,7 +7,7 @@ namespace fs = std::experimental::filesystem;
 namespace bashkir::builtins
 {
 
-int Pwd::exec(const std::vector<std::string> &args)
+int Pwd::exec(const Command &cmd)
 {
     std::cout << fs::current_path().c_str() << std::endl;
     return 0;

@@ -14,7 +14,7 @@ private:
 public:
     History(std::shared_ptr<std::vector<std::string>> hist);
     ~History() {}
-    int exec(const std::vector<std::string> &args);
+    int exec(const Command &cmd);
 };
 
 } // namespace bashkir::builtins

@@ -25,9 +25,18 @@ void Shell::init()
 {
     this->history = std::make_shared<std::vector<std::string>>();
     this->parser = std::make_unique<BashkirCmdParser>(this->history);
-    if (this->registerBuiltin("cd", std::make_shared<builtins::Cd>()) == -1)
+    const std::shared_ptr<builtins::Cd> cd = std::make_shared<builtins::Cd>();
+    if (this->registerBuiltin("cd", cd) == -1)
     {
         std::cerr << "Error with register builtin 'cd'" << std::endl;
+    }
+    if (this->registerBuiltin("pushd", cd) == -1)
+    {
+        std::cerr << "Error with register builtin 'pushd'" << std::endl;
+    }
+    if (this->registerBuiltin("popd", cd) == -1)
+    {
+        std::cerr << "Error with register builtin 'popd'" << std::endl;
     }
     if (this->registerBuiltin("pwd", std::make_shared<builtins::Pwd>()) == -1)
     {
@@ -65,7 +74,7 @@ int Shell::run()
         auto builtin = this->findBuiltin(cmds[0].exe);
         if (builtin != nullptr)
         {
-            builtin.get()->exec(cmds[0].args);
+            builtin.get()->exec(cmds[0]);
         }
         else
         {

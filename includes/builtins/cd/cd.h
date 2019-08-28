@@ -1,9 +1,10 @@
 #pragma once
-#include "builtins/Builtin.h"
 #include <experimental/filesystem>
 #include <string>
 #include <vector>
 #include <map>
+#include <stack>
+#include "builtins/Builtin.h"
 
 namespace bashkir::builtins
 {
@@ -14,13 +15,17 @@ private:
     std::experimental::filesystem::path prev_dir;
     std::experimental::filesystem::path current_dir;
     std::map<std::string, std::experimental::filesystem::path> checkpoints;
+    std::stack<std::experimental::filesystem::path> dir_stack;
 
 public:
     Cd();
     ~Cd() {}
-    int exec(const std::vector<std::string> &args);
+    int exec(const Command &cmd);
 
 private:
+    int exec_cd(const std::vector<std::string> &args);
+    int exec_pushd(const std::vector<std::string> &args);
+    int exec_popd(const std::vector<std::string> &args);
     std::experimental::filesystem::path evaluatePath(const std::string &path_arg) const;
     int changePath(const std::experimental::filesystem::path &new_path);
     void setCheckpoint(const std::string &name);
