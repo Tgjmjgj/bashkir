@@ -3,8 +3,10 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/includes/**"
+                "${workspaceFolder}/includes/**",
+                "${workspaceFolder}/thirdparty/includes/**"
             ],
+            
             "defines": [],
             "cStandard": "c11",
             "cppStandard": "c++17",

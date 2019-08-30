@@ -7,16 +7,16 @@
 namespace bashkir::builtins
 {
 
-History::History(std::shared_ptr<std::vector<std::string>> hist)
-    : history(std::move(hist)) {}
+History::History(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history)
+    : io(std::move(nc_io)), hist(std::move(history)) {}
 
 int History::exec(const Command &cmd)
 {
     std::size_t i = 1;
-    std::string size_str = std::to_string(this->history->size());
+    std::string size_str = std::to_string(this->hist->size());
     int index_cap = util::size_t2int(size_str.length());
-    std::for_each(this->history->begin(), this->history->end(), [this, &i, &index_cap](std::string &command) {
-        std::cout << "  " << std::setw(index_cap) << i << "  " << command << std::endl;
+    std::for_each(this->hist->begin(), this->hist->end(), [this, &i, &index_cap](std::string &command) {
+        this->io->formatStr("  %" + std::to_string(index_cap) + "d  " + command, i);
         i++;
     });
     return 0;

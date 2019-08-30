@@ -7,7 +7,8 @@ namespace fs = std::experimental::filesystem;
 namespace bashkir::builtins
 {
 
-Cd::Cd()
+Cd::Cd(std::shared_ptr<BaseIO> nc_io)
+    : io(std::move(nc_io))
 {
     this->current_dir = this->prev_dir = fs::current_path().c_str();
 }
@@ -44,7 +45,7 @@ int Cd::exec_popd(const std::vector<std::string> &args)
 {
     if (this->dir_stack.empty())
     {
-        std::cout << "popd: the directory stack is empty" << std::endl;
+        this->io->writeStr("popd: the directory stack is empty");
         return -1;
     }
     const fs::path last_stack_dir = this->dir_stack.top();
@@ -94,7 +95,7 @@ fs::path Cd::evaluatePath(const std::string &path_arg) const
         }
         else
         {
-            std::cout << "There is no checkpoint with name '" << cp_name << "'." << std::endl;
+            this->io->writeStr("There is no checkpoint with name '" + cp_name + "'.");
             return this->current_dir;
         }
     }
@@ -107,7 +108,7 @@ int Cd::changePath(const fs::path &togo)
     fs::current_path(togo, err);
     if (err.value() != 0)
     {
-        std::cout << err.message() << std::endl;
+        this->io->writeStr(err.message());
         return -1;
     }
     this->prev_dir = this->current_dir;

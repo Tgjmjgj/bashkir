@@ -1,6 +1,5 @@
 #include <iostream>
 #include <unistd.h>
-#include <map>
 #include <experimental/filesystem>
 #include "Shell.h"
 #include "parser/BashkirCmdParser.h"
@@ -9,6 +8,7 @@
 #include "builtins/cd/cd.h"
 #include "builtins/pwd/pwd.h"
 #include "builtins/history/history.h"
+#include "io/NcursesIO.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -21,36 +21,46 @@ Shell::Shell()
     this->init();
 }
 
+Shell::~Shell() {}
+
 void Shell::init()
 {
+    std::shared_ptr<NCurses> ncurses = std::make_shared<NCurses>();
+    this->io = std::make_shared<NcursesIO>(ncurses);
     this->history = std::make_shared<std::vector<std::string>>();
-    this->parser = std::make_unique<BashkirCmdParser>(this->history);
-    const std::shared_ptr<builtins::Cd> cd = std::make_shared<builtins::Cd>();
+    this->input = std::make_unique<InputHandler>(ncurses, this->history);
+    this->parser = std::make_unique<BashkirCmdParser>(this->io, this->history);
+    this->loadBuiltins();
+}
+
+void Shell::loadBuiltins()
+{
+    const std::shared_ptr<builtins::Cd> cd = std::make_shared<builtins::Cd>(this->io);
     if (this->registerBuiltin("cd", cd) == -1)
     {
-        std::cerr << "Error with register builtin 'cd'" << std::endl;
+        this->io->error("Error with register builtin 'cd'");
     }
     if (this->registerBuiltin("pushd", cd) == -1)
     {
-        std::cerr << "Error with register builtin 'pushd'" << std::endl;
+        this->io->error("Error with register builtin 'pushd'");
     }
     if (this->registerBuiltin("popd", cd) == -1)
     {
-        std::cerr << "Error with register builtin 'popd'" << std::endl;
+        this->io->error("Error with register builtin 'popd'");
     }
-    if (this->registerBuiltin("pwd", std::make_shared<builtins::Pwd>()) == -1)
+    if (this->registerBuiltin("pwd", std::make_shared<builtins::Pwd>(this->io)) == -1)
     {
-        std::cerr << "Error with register builtin 'pwd'" << std::endl;
+        this->io->error("Error with register builtin 'pwd'");
     }
-    if (this->registerBuiltin("history", std::make_shared<builtins::History>(this->history)) == -1)
+    if (this->registerBuiltin("history", std::make_shared<builtins::History>(this->io, this->history)) == -1)
     {
-        std::cerr << "Error with register builtin 'history'" << std::endl;
+        this->io->error("Error with register builtin 'history'");
     }
 }
 
-int Shell::registerBuiltin(const std::string &name, const std::shared_ptr<builtins::BuiltIn> &&handler)
+int Shell::registerBuiltin(const std::string &name, const std::shared_ptr<builtins::BuiltIn> handler)
 {
-    this->builtins.insert_or_assign(name, handler);
+    this->builtins.insert_or_assign(name, std::move(handler));
     return 0;
 }
 
@@ -64,41 +74,32 @@ int Shell::run()
 {
     while (true)
     {
-        const std::string input = this->waitInput();
-        auto cmds = this->parser->parse(input);
-        if (cmds.size() == 0)
+        this->writePrefix();
+        const std::string inputStr = this->input->waitInput();
+        auto cmds = this->parser->parse(inputStr);
+        for (const Command &cmd : cmds)
         {
-            continue;
-        }
-        std::cout << this->history->back() << std::endl;
-        auto builtin = this->findBuiltin(cmds[0].exe);
-        if (builtin != nullptr)
-        {
-            builtin.get()->exec(cmds[0]);
-        }
-        else
-        {
-            std::unique_ptr<Executor> exec = std::make_unique<Executor>();
-            exec->execute(cmds[0]);
-            exec->waitSubproc();
+            auto builtin = this->findBuiltin(cmd.exe);
+            if (builtin != nullptr)
+            {
+                builtin.get()->exec(cmd);
+            }
+            else
+            {
+                std::unique_ptr<Executor> exec = std::make_unique<Executor>(this->io);
+                exec->execute(cmd);
+                exec->waitSubproc();
+            }
         }
     }
     return 0;
-}
-
-std::string Shell::waitInput() const
-{
-    this->writePrefix();
-    std::string buffer = std::string();
-    std::getline(std::cin, buffer);
-    return buffer;
 }
 
 void Shell::writePrefix() const
 {
     std::string cPath = fs::current_path().c_str();
     util::fullToHomeRel(cPath);
-    std::cout << "paradox> " << cPath << " $ ";
+    this->io->write("paradox> " + cPath + " $ ");
 }
 
 } // namespace bashkir

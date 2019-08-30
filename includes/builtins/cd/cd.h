@@ -4,7 +4,9 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <memory>
 #include "builtins/Builtin.h"
+#include "io/interface/BaseIO.h"
 
 namespace bashkir::builtins
 {
@@ -16,9 +18,9 @@ private:
     std::experimental::filesystem::path current_dir;
     std::map<std::string, std::experimental::filesystem::path> checkpoints;
     std::stack<std::experimental::filesystem::path> dir_stack;
-
+    std::shared_ptr<BaseIO> io;
 public:
-    Cd();
+    Cd(std::shared_ptr<BaseIO> nc_io);
     ~Cd() {}
     int exec(const Command &cmd);
 

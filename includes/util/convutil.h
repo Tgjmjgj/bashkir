@@ -26,4 +26,9 @@ inline int size_t2int(std::size_t val) {
     return (val <= __INT_MAX__) ? static_cast<int>(static_cast<ssize_t>(val)) : -1;
 }
 
+inline uint c2ui(char ch)
+{
+    return static_cast<uint>(static_cast<u_char>(ch));
+}
+
 } // namespace bashkir::util

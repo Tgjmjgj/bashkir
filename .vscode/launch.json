@@ -8,7 +8,7 @@
             "name": "(gdb) Attach",
             "type": "cppdbg",
             "request": "attach",
-            "program": "${workspaceFolder}/build/run",
+            "program": "${workspaceFolder}/build/bin/run",
             "processId": "2380",
             "MIMode": "gdb",
             "setupCommands": [
@@ -27,7 +27,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/run",
+            "program": "${workspaceFolder}/build/bin/run",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",

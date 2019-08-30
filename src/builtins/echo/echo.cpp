@@ -8,6 +8,9 @@ namespace fs = std::experimental::filesystem;
 namespace bashkir::builtins
 {
 
+Echo::Echo(std::shared_ptr<BaseIO> nc_io)
+    : io(std::move(nc_io)) {}
+
 int Echo::exec(const Command &cmd)
 {
     std::string echo_cmd = std::accumulate(
@@ -18,7 +21,7 @@ int Echo::exec(const Command &cmd)
             return accum + next;
         }
     );
-    std::cout << echo_cmd << std::endl;
+    this->io->writeStr(echo_cmd);
     return 0;
 }
 
