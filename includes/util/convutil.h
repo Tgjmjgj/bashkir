@@ -31,4 +31,9 @@ inline uint c2ui(char ch)
     return static_cast<uint>(static_cast<u_char>(ch));
 }
 
+inline uint i2ui(int i)
+{
+    return static_cast<uint>(i);
+}
+
 } // namespace bashkir::util

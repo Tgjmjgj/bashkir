@@ -29,9 +29,13 @@ public:
     void writeStr(const std::string &str) const;
     void writeChar(const char ch) const;
     void writeError(const std::string &err_msg) const;
+    void format(const std::string &fmt_str, ...) const;
+    void format(const std::string &fmt_str, va_list argptr) const;
     void formatStr(const std::string &fmt_str, ...) const;
     void formatStr(const std::string &fmt_str, va_list argptr) const;
     std::string readStr() const;
+    void pause() const;
+    void resume() const;
 };
 
 } // namespace bashkir

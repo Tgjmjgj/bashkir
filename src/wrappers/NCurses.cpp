@@ -58,6 +58,22 @@ void NCurses::writeError(const std::string &err_msg) const
     refresh();
 }
 
+void NCurses::format(const std::string &fmt_str, ...) const
+{
+    va_list arg_ptr;
+    const char *c_str = fmt_str.c_str();
+    va_start(arg_ptr, fmt_str);
+    vwprintw(stdscr, c_str, arg_ptr);
+    va_end(arg_ptr);
+    refresh();
+}
+
+void NCurses::format(const std::string &fmt_str, va_list arg_ptr) const
+{
+    vwprintw(stdscr, fmt_str.c_str(), arg_ptr);
+    refresh();
+}
+
 void NCurses::formatStr(const std::string &fmt_str, ...) const
 {
     va_list arg_ptr;
@@ -65,17 +81,33 @@ void NCurses::formatStr(const std::string &fmt_str, ...) const
     va_start(arg_ptr, fmt_str);
     vwprintw(stdscr, c_str, arg_ptr);
     va_end(arg_ptr);
+    addch('\n');
+    refresh();
 }
 
 void NCurses::formatStr(const std::string &fmt_str, va_list arg_ptr) const
 {
     vwprintw(stdscr, fmt_str.c_str(), arg_ptr);
+    addch('\n');
+    refresh();
 }
 
 std::string NCurses::readStr() const
 {
     getstr(this->read_buffer);
     return std::string(this->read_buffer);
+}
+
+void NCurses::pause() const
+{
+    def_prog_mode();
+    endwin();
+}
+
+void NCurses::resume() const
+{
+    reset_prog_mode();
+    refresh();
 }
 
 } // namespace bashkir

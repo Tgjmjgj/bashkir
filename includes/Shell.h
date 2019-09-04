@@ -6,6 +6,7 @@
 #include "builtins/Builtin.h"
 #include "input/InputHandler.h"
 #include "io/interface/BaseIO.h"
+#include "wrappers/NCurses.h"
 
 namespace bashkir
 {

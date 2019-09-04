@@ -13,9 +13,22 @@ void NcursesIO::write(const std::string &str) const
     this->nc->write(str);
 }
 
+void NcursesIO::write(const char ch) const
+{
+    this->nc->writeChar(ch);
+}
+
 void NcursesIO::writeStr(const std::string &str) const
 {
     this->nc->writeStr(str);
+}
+
+void NcursesIO::format(const std::string &fmt_str, ...) const
+{
+    va_list arg_ptr;
+    va_start(arg_ptr, fmt_str);
+    this->nc->format(fmt_str, arg_ptr);
+    va_end(arg_ptr);
 }
 
 void NcursesIO::formatStr(const std::string &fmt_str, ...) const

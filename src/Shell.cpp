@@ -1,14 +1,16 @@
 #include <iostream>
 #include <unistd.h>
 #include <experimental/filesystem>
+#include <termios.h>
 #include "Shell.h"
 #include "parser/BashkirCmdParser.h"
 #include "exec/Executor.h"
 #include "util/pathutil.h"
+#include "util/convutil.h"
 #include "builtins/cd/cd.h"
 #include "builtins/pwd/pwd.h"
 #include "builtins/history/history.h"
-#include "io/NcursesIO.h"
+#include "io/StreamIO.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -17,6 +19,27 @@ namespace bashkir
 
 Shell::Shell()
 {
+    termios settings;
+    if (isatty(STDIN_FILENO))
+        setvbuf(stdin, NULL, _IONBF, 0);
+    if (isatty(STDOUT_FILENO))
+        setvbuf(stdout, NULL, _IONBF, 0);
+    if (isatty(STDERR_FILENO))
+        setvbuf(stderr, NULL, _IONBF, 0);
+    memset(&settings, 0, sizeof(termios));
+    settings.c_iflag |= util::i2ui(ICRNL);
+    settings.c_cflag |= util::i2ui(CREAD);
+    // settings.c_lflag |= util::i2ui(ECHOCTL);
+    // settings.c_lflag |= util::i2ui(ECHOE);
+    settings.c_lflag |= util::i2ui(IEXTEN);
+    settings.c_cc[VMIN]  = 1;
+    settings.c_cc[VTIME] = 0;
+    printf("iflag: %d\n", settings.c_iflag);
+    printf("lflag: %d\n", settings.c_lflag);
+    if (tcsetattr(STDERR_FILENO, TCSANOW, &settings) < 0)
+    {
+        std::cerr << "Error with setting new term properties.\n";
+    }
     fs::current_path(getenv("HOME"));
     this->init();
 }
@@ -25,10 +48,9 @@ Shell::~Shell() {}
 
 void Shell::init()
 {
-    std::shared_ptr<NCurses> ncurses = std::make_shared<NCurses>();
-    this->io = std::make_shared<NcursesIO>(ncurses);
+    this->io = std::make_shared<StreamIO>();
     this->history = std::make_shared<std::vector<std::string>>();
-    this->input = std::make_unique<InputHandler>(ncurses, this->history);
+    this->input = std::make_unique<InputHandler>(this->history);
     this->parser = std::make_unique<BashkirCmdParser>(this->io, this->history);
     this->loadBuiltins();
 }

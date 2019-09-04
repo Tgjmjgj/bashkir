@@ -2,6 +2,7 @@
 #include <memory>
 #include "parser/interface/Command.h"
 #include "io/interface/BaseIO.h"
+#include "wrappers/NCurses.h"
 
 namespace bashkir
 {
@@ -10,6 +11,7 @@ class Executor
 {
 private:
     std::shared_ptr<BaseIO> io;
+
 public:
     int in;
     int out;

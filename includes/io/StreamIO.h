@@ -2,18 +2,15 @@
 #include <string>
 #include <memory>
 #include "io/interface/BaseIO.h"
-#include "wrappers/NCurses.h"
 
 namespace bashkir
 {
 
-class NcursesIO : public BaseIO
+class StreamIO : public BaseIO
 {
-private:
-    std::shared_ptr<NCurses> nc;
 public:
-    NcursesIO(std::shared_ptr<NCurses> ncurses);
-    ~NcursesIO() {};
+    StreamIO();
+    ~StreamIO() {};
     void write(const std::string &str) const;
     void write(const char ch) const;
     void writeStr(const std::string &str) const;

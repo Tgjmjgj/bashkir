@@ -49,6 +49,9 @@
         "memory_resource": "cpp",
         "bitset": "cpp",
         "iterator": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "functional": "cpp",
+        "numeric": "cpp",
+        "iomanip": "cpp"
     }
 }

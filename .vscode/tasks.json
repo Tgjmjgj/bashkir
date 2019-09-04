@@ -4,9 +4,17 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "echo",
             "type": "shell",
-            "command": "echo Hello"
+            "label": "Make",
+            "command": "make",
+            "args": [],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build"
         }
     ]
 }

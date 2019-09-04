@@ -10,7 +10,7 @@ namespace bashkir
 {
 
 Executor::Executor(std::shared_ptr<BaseIO> nc_io)
-    : io(std::move(nc_io)), in(-1), out(-1) {}
+    : io(nc_io), in(-1), out(-1) {}
 
 int Executor::execute(const Command &cmd)
 {
@@ -40,7 +40,7 @@ int Executor::execute(const Command &cmd)
                 this->io->writeStr("Command '" + cmd.exe + "' not found.");
                 break;
             default:
-                this->io->write(cmd.exe + " return error code " + std::to_string(errno) + ": " + std::strerror(errno));
+                this->io->writeStr(cmd.exe + " return error code " + std::to_string(errno) + ": " + std::strerror(errno));
                 break;
             }
         }
