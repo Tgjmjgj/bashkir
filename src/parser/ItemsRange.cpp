@@ -12,7 +12,11 @@ void ItemsRange::ItemsRangeIterator::nextItem()
     size_t i = this->start;
     for (; i < this->fullString->length(); ++i)
     {
-        if ((*(this->fullString))[i] == ' ' && this->length == 0)
+        if ((*(this->fullString))[i] == ' ' && this->start == i)
+        {
+            this->start = this->next = i + 1;
+        }
+        else if ((*(this->fullString))[i] == ' ' && this->length == 0)
         {
             this->length = i - this->start;
         }
