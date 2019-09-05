@@ -39,4 +39,17 @@ inline bool startswith(const std::string &str, const std::string &prefix)
     return str.rfind(prefix) == 0;
 }
 
+inline bool is_empty(const char *str)
+{
+    return strcmp(str, "") == 0;
+}
+
+inline char* substr(const char *str, std::size_t start_pos, std::size_t length)
+{
+    char *substr = new char[length + 1];
+    memcpy(substr, &str[start_pos], length);
+    substr[length] = '\0';
+    return substr;
+}
+
 } // namespace bashkir::util

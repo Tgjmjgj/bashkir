@@ -2,7 +2,9 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "wrappers/NCurses.h"
+#include "io/interface/BaseIO.h"
+
+#define INPUT_BUFFER_SIZE 1024
 
 namespace bashkir
 {
@@ -10,9 +12,11 @@ namespace bashkir
 class InputHandler
 {
 private:
-    std::shared_ptr<std::vector<std::string>> hist;
+    const std::shared_ptr<BaseIO> io;
+    const std::shared_ptr<std::vector<std::string>> hist;
+    char buffer[INPUT_BUFFER_SIZE];
 public:
-    InputHandler(std::shared_ptr<std::vector<std::string>> history);
+    InputHandler(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history);
     std::string waitInput();
 };
 

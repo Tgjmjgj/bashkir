@@ -2,6 +2,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <termios.h>
 #include "parser/interface/ICmdParser.h"
 #include "builtins/Builtin.h"
 #include "input/InputHandler.h"
@@ -19,6 +20,8 @@ private:
     std::map<std::string, std::shared_ptr<builtins::BuiltIn>> builtins;
     std::shared_ptr<std::vector<std::string>> history;
     std::shared_ptr<BaseIO> io;
+
+    termios settings_before;
 public:
     Shell();
     ~Shell();
