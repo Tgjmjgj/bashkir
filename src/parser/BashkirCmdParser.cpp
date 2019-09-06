@@ -64,6 +64,13 @@ void BashkirCmdParser::postprocess(std::vector<Command> &cmds) const
 
 bool BashkirCmdParser::substitution(std::string &argument) const
 {
+    bool is_changed1 = this->substituteHist(argument);
+    bool is_changed2 = this->substituteEnv(argument);
+    return is_changed1 || is_changed2;
+}
+
+bool BashkirCmdParser::substituteHist(std::string &argument) const
+{
     std::size_t pos = argument.find('!');
     bool is_changed = false;
     while (pos != std::string::npos && pos != argument.length() - 1)
@@ -110,6 +117,30 @@ bool BashkirCmdParser::substitution(std::string &argument) const
             }
         }
         pos = argument.find('!', pos + 1);
+    }
+    return is_changed;
+}
+
+bool BashkirCmdParser::substituteEnv(std::string &argument) const
+{
+    bool is_changed = false;
+    const std::regex re("\\$[A-Z_][A-Z0-9_]*");
+    std::sregex_iterator sr_begin(argument.begin(), argument.end(), re), sr_end;
+    std::vector<std::tuple<std::size_t, std::size_t>> poses;
+    for (std::sregex_iterator i = sr_begin; i != sr_end; ++i)
+    {
+        const std::size_t start = util::li2size_t(i->position()) / sizeof(char);
+        const std::size_t len = util::li2size_t(i->length()) / sizeof(char);
+        poses.insert(poses.begin(), std::make_tuple(start, len));
+    }
+    for (auto &pos : poses)
+    {
+        const std::size_t start = std::get<0>(pos);
+        const std::size_t len = std::get<1>(pos);
+        const std::string env_name = argument.substr(start + 1, len - 1);
+        char *env_val = getenv(env_name.c_str());
+        const std::string env_str = env_val == nullptr ? std::string() : std::string(env_val);
+        argument.replace(start, len, env_str);
     }
     return is_changed;
 }

@@ -22,6 +22,10 @@ inline std::size_t int2size_t(int val) {
     return (val < 0) ? __SIZE_MAX__ : static_cast<std::size_t>(static_cast<unsigned int>(val));
 }
 
+inline std::size_t li2size_t(long int val) {
+    return (val < 0) ? __SIZE_MAX__ : static_cast<std::size_t>(static_cast<unsigned int>(val));
+}
+
 inline int size_t2int(std::size_t val) {
     return (val <= __INT_MAX__) ? static_cast<int>(static_cast<ssize_t>(val)) : -1;
 }

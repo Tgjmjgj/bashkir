@@ -16,6 +16,8 @@ public:
     std::vector<Command> parse(const std::string &input_str);
     void postprocess(std::vector<Command> &cmds) const;
     bool substitution(std::string &argument) const;
+    bool substituteHist(std::string &argument) const;
+    bool substituteEnv(std::string &argument) const;
 
 };
 
