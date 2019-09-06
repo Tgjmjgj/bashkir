@@ -11,9 +11,11 @@
 #define KEY_DOWN_ARROW "\033[B"
 #define KEY_ENTER "\r"
 #define KEY_BACKSPACE "\177"
+#define KEY_DELETE "\033[3~"
 
 namespace bashkir
 {
+
 InputHandler::InputHandler(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history)
     : io(std::move(nc_io)), hist(std::move(history)) {}
 

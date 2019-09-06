@@ -12,7 +12,7 @@ Pwd::Pwd(std::shared_ptr<BaseIO> nc_io)
 
 int Pwd::exec(const Command &cmd)
 {
-    std::cout << fs::current_path().c_str() << std::endl;
+    this->io->writeStr(fs::current_path().c_str());
     return 0;
 }
 

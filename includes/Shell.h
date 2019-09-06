@@ -2,12 +2,12 @@
 #include <string>
 #include <map>
 #include <memory>
-#include <termios.h>
 #include "parser/interface/ICmdParser.h"
 #include "builtins/Builtin.h"
 #include "input/InputHandler.h"
 #include "io/interface/BaseIO.h"
 #include "wrappers/NCurses.h"
+#include "BuiltinRegistry.h"
 
 namespace bashkir
 {
@@ -17,11 +17,10 @@ class Shell
 private:
     std::unique_ptr<ICmdParser> parser;
     std::unique_ptr<InputHandler> input;
-    std::map<std::string, std::shared_ptr<builtins::BuiltIn>> builtins;
     std::shared_ptr<std::vector<std::string>> history;
     std::shared_ptr<BaseIO> io;
-
-    termios settings_before;
+    std::shared_ptr<BuiltinRegistry> builtins;
+    
 public:
     Shell();
     ~Shell();
@@ -30,8 +29,6 @@ public:
 private:
     void init();
     void loadBuiltins();
-    int registerBuiltin(const std::string &name, const std::shared_ptr<builtins::BuiltIn> handler);
-    std::shared_ptr<builtins::BuiltIn> findBuiltin(const std::string &name) const;
     void writePrefix() const;
     std::string waitInput() const;
 };

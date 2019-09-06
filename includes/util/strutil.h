@@ -1,6 +1,8 @@
 #pragma once
 #include <algorithm>
+#include <vector>
 #include <string>
+#include <sstream>
 
 namespace bashkir::util
 {
@@ -50,6 +52,18 @@ inline char* substr(const char *str, std::size_t start_pos, std::size_t length)
     memcpy(substr, &str[start_pos], length);
     substr[length] = '\0';
     return substr;
+}
+
+inline std::vector<std::string> split(const std::string &base, const char delim)
+{
+    std::stringstream sstream(base);
+    std::vector<std::string> parts;
+    std::string next_part;
+    while (std::getline(sstream, next_part, delim))
+    {
+        parts.push_back(next_part);
+    }
+    return parts;
 }
 
 } // namespace bashkir::util
