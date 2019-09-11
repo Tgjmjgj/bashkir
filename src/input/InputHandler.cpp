@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "input/InputHandler.h"
 #include "util/strutil.h"
+#include "global.h"
 
 #define KEY_LEFT_ARROW "\033[D"
 #define KEY_RIGHT_ARROW "\033[C"
@@ -30,6 +31,7 @@ std::string InputHandler::waitInput()
     {
         memset(tmp_buf, 0, sizeof(tmp_buf));
         read(STDIN_FILENO, &tmp_buf, sizeof(tmp_buf));
+        // log::to->Info(tmp_buf);
         if (util::is_empty(tmp_buf))
         {
             continue;
