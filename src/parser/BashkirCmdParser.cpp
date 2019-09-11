@@ -16,7 +16,6 @@ BashkirCmdParser::BashkirCmdParser(std::shared_ptr<BaseIO> nc_io, std::shared_pt
 
 std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
 {
-    const std::string union_delim = "&&";
     std::vector<Command> cmds = std::vector<Command>();
     auto items = iterate_items(input_str);
     Command cmd;
@@ -28,7 +27,19 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
             it.setValue(item);
             continue;
         }
-        if (item == union_delim)
+        if (item == "|")
+        {
+            cmd.io = PipeFlow::TO_RIGHT;
+        }
+        else if (item == ">")
+        {
+            cmd.io = PipeFlow::TO_FILE;
+        }
+        else if (item == ">>")
+        {
+            cmd.io = PipeFlow::TO_FILE_APPEND;
+        }
+        if (item == "&&" || item == "|" || item == ">" || item == ">>")
         {
             cmds.push_back(cmd);
             cmd = Command();

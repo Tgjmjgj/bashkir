@@ -3,8 +3,9 @@
 #include <map>
 #include <memory>
 #include "parser/interface/ICmdParser.h"
-#include "builtins/Builtin.h"
 #include "input/InputHandler.h"
+#include "exec/ExecManager.h"
+#include "builtins/Builtin.h"
 #include "io/interface/BaseIO.h"
 #include "wrappers/NCurses.h"
 #include "BuiltinRegistry.h"
@@ -17,6 +18,7 @@ class Shell
 private:
     std::unique_ptr<ICmdParser> parser;
     std::unique_ptr<InputHandler> input;
+    std::unique_ptr<ExecManager> exec;
     std::shared_ptr<std::vector<std::string>> history;
     std::shared_ptr<BaseIO> io;
     std::shared_ptr<BuiltinRegistry> builtins;

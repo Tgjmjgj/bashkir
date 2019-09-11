@@ -62,6 +62,7 @@ void Shell::init()
     this->input = std::make_unique<InputHandler>(this->io, this->history);
     this->parser = std::make_unique<BashkirCmdParser>(this->io, this->history);
     this->builtins = std::make_shared<BuiltinRegistry>();
+    this->exec = std::make_unique<ExecManager>(this->io, this->builtins);
     this->loadBuiltins();
 }
 
@@ -104,21 +105,8 @@ int Shell::run()
     {
         this->writePrefix();
         const std::string inputStr = this->input->waitInput();
-        auto cmds = this->parser->parse(inputStr);
-        for (const Command &cmd : cmds)
-        {
-            auto builtin = this->builtins->findBuiltin(cmd.exe);
-            if (builtin != nullptr)
-            {
-                builtin.get()->exec(cmd);
-            }
-            else
-            {
-                std::unique_ptr<Executor> exec = std::make_unique<Executor>(this->io);
-                exec->execute(cmd);
-                exec->waitSubproc();
-            }
-        }
+        std::vector<Command> cmds = this->parser->parse(inputStr);
+        this->exec->execute(cmds);
     }
     return 0;
 }

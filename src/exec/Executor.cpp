@@ -9,27 +9,35 @@
 namespace bashkir
 {
 
-Executor::Executor(std::shared_ptr<BaseIO> nc_io)
-    : io(nc_io), in(-1), out(-1) {}
+Executor::Executor(std::shared_ptr<BaseIO> nc_io, int i, int o, int e)
+    : io(std::move(nc_io)), in(i), out(o), err(e) {}
 
 int Executor::execute(const Command &cmd)
 {
-    // this->createPipe();
-    // dup2(this->in, STDIN_FILENO);
-    // dup2(STDOUT_FILENO, this->out);
     const __pid_t child_id = fork();
-    if (child_id)
+    if (child_id) // parent process
     {
         if (child_id == -1)
         {
             this->io->writeStr("Something get wrongs!");
         }
+        this->pid = child_id;
         return child_id;
     }
-    else
+    else // child process
     {
-        // dup2(this->in, STDIN_FILENO);
-        // dup2(this->out, STDOUT_FILENO);
+        if (this->out != STDOUT_FILENO)
+        {
+            dup2(this->out, STDOUT_FILENO);
+            close(this->out);
+            close(this->out - 1);
+        }
+        if (this->in != STDIN_FILENO)
+        {
+            dup2(this->in, STDIN_FILENO);
+            close(this->in);
+            close(this->in + 1);
+        }
         char *const *args = util::createExecArgs(cmd.exe, cmd.args);
         int err_code = execvp(cmd.exe.c_str(), args);
         if (err_code == -1)
@@ -51,25 +59,6 @@ int Executor::execute(const Command &cmd)
 void Executor::waitSubproc() const
 {
     wait(NULL);
-}
-
-void Executor::createPipe()
-{
-    int *pipe_ids = new int[2];
-    pipe(pipe_ids);
-    this->in = pipe_ids[0];
-    this->out = pipe_ids[1];
-}
-
-void Executor::closePipe()
-{
-    close(this->in);
-    close(this->out);
-}
-
-Executor::~Executor()
-{
-    this->closePipe();
 }
 
 } // namespace bashkir
