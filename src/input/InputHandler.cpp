@@ -160,6 +160,7 @@ void InputHandler::pressSimpleKey(char ch)
             this->buffer[this->index + i - 1] = this->buffer[this->index + i - 2];
         }
         this->buffer[this->index - 1] = ch;
+        assert(this->iend == strlen(this->buffer));
         break;
     }
 }
@@ -169,13 +170,14 @@ std::size_t InputHandler::setHistoryItem()
     std::string hist_item = (*(this->hist))[this->hist_ind];
     this->io->write(std::string(this->index, '\b'));
     this->io->write(hist_item);
-    if (this->iend > hist_item.length())
+    std::size_t max_space = this->iend > hist_item.length() ? this->iend : hist_item.length();
+    if (max_space == this->iend)
     {
         std::size_t free_space_len = this->iend - hist_item.length();
         this->io->write(std::string(free_space_len, ' '));
         this->io->write(std::string(free_space_len, '\b'));
     }
-    for (std::size_t i = 0; i < this->iend; ++i)
+    for (std::size_t i = 0; i < max_space; ++i)
     {
         if (i < hist_item.length())
         {
