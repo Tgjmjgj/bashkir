@@ -19,6 +19,7 @@ public:
     SpdFileLogger();
     ~SpdFileLogger();
     inline void Info(const std::string &msg);
+    inline void Info(char ch);
     inline void Warn(const std::string &msg);
     inline void Err(const std::string &msg);
 };

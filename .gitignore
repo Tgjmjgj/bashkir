@@ -18,3 +18,6 @@ build
 
 # Build executables
 bin
+
+# Logs
+*.log

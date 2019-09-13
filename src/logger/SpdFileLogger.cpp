@@ -15,6 +15,11 @@ inline void SpdFileLogger::Info(const std::string &msg)
     this->log->info(msg);
 }
 
+inline void SpdFileLogger::Info(char ch)
+{
+    this->log->info(ch);
+}
+
 inline void SpdFileLogger::Warn(const std::string &msg)
 {
     this->log->warn(msg);
