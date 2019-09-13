@@ -28,14 +28,22 @@ void restoreTermSettings()
 
 Shell::Shell()
 {
+    this->io = std::make_shared<StreamIO>();
+
     memset(&settings_before, 0, sizeof(termios));
     tcgetattr(0, &settings_before);
     if (isatty(STDIN_FILENO))
+    {
         setvbuf(stdin, NULL, _IONBF, 0);
+    }
     if (isatty(STDOUT_FILENO))
+    {
         setvbuf(stdout, NULL, _IONBF, 0);
+    }
     if (isatty(STDERR_FILENO))
+    {
         setvbuf(stderr, NULL, _IONBF, 0);
+    }
     termios settings;
     memset(&settings, 0, sizeof(termios));
     settings.c_cflag |= util::i2ui(CREAD);
@@ -47,7 +55,7 @@ Shell::Shell()
     atexit(restoreTermSettings);
     if (tcsetattr(0, TCSANOW, &settings) < 0)
     {
-        std::cerr << "Error with setting new term properties.\n";
+        this->io->error("Error with setting new term properties.");
     }
     fs::current_path(getenv("HOME"));
     this->init();
@@ -57,7 +65,6 @@ Shell::~Shell() {}
 
 void Shell::init()
 {
-    this->io = std::make_shared<StreamIO>();
     this->history = std::make_shared<std::vector<std::string>>();
     this->input = std::make_unique<InputHandler>(this->io, this->history);
     this->parser = std::make_unique<BashkirCmdParser>(this->io, this->history);

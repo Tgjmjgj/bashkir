@@ -5,15 +5,17 @@
 #include <cstring>
 #include "exec/Executor.h"
 #include "util/convutil.h"
+#include "global.h"
 
 namespace bashkir
 {
 
-Executor::Executor(std::shared_ptr<BaseIO> nc_io, int i, int o, int e)
-    : io(std::move(nc_io)), in(i), out(o), err(e) {}
+Executor::Executor(std::shared_ptr<BaseIO> nc_io, int i, int o, int e, const std::vector<int> &pp)
+    : io(std::move(nc_io)), in(i), out(o), err(e), all_pipes(pp) {}
 
 int Executor::execute(const Command &cmd)
 {
+    if (LOG_L2) log::to->Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
     const __pid_t child_id = fork();
     if (child_id) // parent process
     {
@@ -29,14 +31,14 @@ int Executor::execute(const Command &cmd)
         if (this->out != STDOUT_FILENO)
         {
             dup2(this->out, STDOUT_FILENO);
-            close(this->out);
-            close(this->out - 1);
         }
         if (this->in != STDIN_FILENO)
         {
             dup2(this->in, STDIN_FILENO);
-            close(this->in);
-            close(this->in + 1);
+        }
+        for (int pipe : this->all_pipes)
+        {
+            close(pipe);
         }
         char *const *args = util::createExecArgs(cmd.exe, cmd.args);
         int err_code = execvp(cmd.exe.c_str(), args);

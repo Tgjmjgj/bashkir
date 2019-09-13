@@ -23,7 +23,6 @@ private:
     std::size_t iend;
     std::size_t hist_ind;
 
-    int log_level;
 public:
     InputHandler(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history);
     std::string waitInput();

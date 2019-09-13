@@ -2,6 +2,7 @@
 #include <sys/wait.h>
 #include "exec/ExecManager.h"
 #include "exec/Executor.h"
+#include "global.h"
 
 namespace bashkir
 {
@@ -14,6 +15,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     std::vector<int> pipes;
     std::vector<Executor> subprocs;
     int next_in = STDIN_FILENO;
+    if (LOG_L2) log::to->Info("RUN COMMANDS:");
     for (const Command &cmd : cmds)
     {
         int in = next_in;
@@ -39,7 +41,7 @@ int ExecManager::execute(std::vector<Command> cmds)
         }
         else
         {
-            Executor exec(this->io, in, out, err);
+            Executor exec(this->io, in, out, err, pipes);
             subprocs.push_back(exec);
             exec.execute(cmd);
         }
