@@ -58,7 +58,7 @@ std::string InputHandler::waitInput()
         }
         else if (strcmp(tmp_buf, KEY_UP_ARROW) == 0)
         {
-            if (hist_ind > 1)
+            if (hist_ind > 0)
             {
                 --hist_ind;
                 index = iend = this->setHistoryItem(hist_ind, index, iend);
