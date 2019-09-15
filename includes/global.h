@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <termios.h>
 #include "logger/interface/BaseLogger.h"
 #include "logger/SpdFileLogger.h"
 
@@ -17,6 +18,22 @@ inline int level = 2;
 
 inline std::unique_ptr<BaseLogger> to = std::make_unique<SpdFileLogger>();
 
+} // namespace bashkir::log
+
+namespace global
+{
+
+inline bool restore_term_atexit = true;
+inline termios settings_before;
+
+inline void restoreTermSettings()
+{
+    if (restore_term_atexit)
+    {
+        tcsetattr(STDIN_FILENO, TCSANOW, &settings_before);
+    }
 }
 
-} // namespace bashkir::log
+} // namespace bashkir::global
+
+} // namespace bashkir

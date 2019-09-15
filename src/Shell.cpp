@@ -3,6 +3,7 @@
 #include <experimental/filesystem>
 #include <termios.h>
 #include "Shell.h"
+#include "global.h"
 #include "parser/BashkirCmdParser.h"
 #include "exec/Executor.h"
 #include "util/pathutil.h"
@@ -19,19 +20,12 @@ namespace fs = std::experimental::filesystem;
 namespace bashkir
 {
 
-termios settings_before;
-
-void restoreTermSettings()
-{
-    tcsetattr(STDIN_FILENO, TCSANOW, &settings_before);
-}
-
 Shell::Shell()
 {
     this->io = std::make_shared<StreamIO>();
 
-    memset(&settings_before, 0, sizeof(termios));
-    tcgetattr(0, &settings_before);
+    memset(&global::settings_before, 0, sizeof(termios));
+    tcgetattr(0, &global::settings_before);
     if (isatty(STDIN_FILENO))
     {
         setvbuf(stdin, NULL, _IONBF, 0);
@@ -52,7 +46,7 @@ Shell::Shell()
     settings.c_oflag |= util::i2ui(ONLCR);
     settings.c_cc[VMIN]  = 1; // 0
     settings.c_cc[VTIME] = 0;
-    atexit(restoreTermSettings);
+    atexit(global::restoreTermSettings);
     if (tcsetattr(0, TCSANOW, &settings) < 0)
     {
         this->io->error("Error with setting new term properties.");
