@@ -19,6 +19,7 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
     std::vector<Command> cmds = std::vector<Command>();
     auto items = iterate_items(input_str);
     Command cmd;
+    bool before_first_cmd = true;
     for (auto it = items.begin(); it != items.end(); ++it)
     {
         std::string item = it.getValue();
@@ -29,12 +30,15 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
             continue;
         }
         // Env var setting can be only in begin of input
-        if (it == items.begin())
+        if (before_first_cmd)
         {
             std::tuple<std::string, std::string> parts = util::splitInHalf(item, '=');
             if (std::get<1>(parts) != "")
             {
-                setenv(std::get<0>(parts).c_str(), std::get<1>(parts).c_str(), 1);
+                EnvVar env;
+                env.name = std::get<0>(parts).c_str();
+                env.value = std::get<1>(parts).c_str();
+                cmd.env.push_back(env);
                 continue;
             }
         }
@@ -53,10 +57,12 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
         if (item == "&&" || item == "|" || item == ">" || item == ">>")
         {
             cmds.push_back(cmd);
+            before_first_cmd = true;
             cmd = Command();
         }
         else if (cmd.args.empty() && cmd.exe.length() == 0)
         {
+            before_first_cmd = false;
             cmd.exe = item;
         }
         else

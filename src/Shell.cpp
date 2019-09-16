@@ -13,10 +13,8 @@
 #include "builtins/history/history.h"
 #include "builtins/exit/exit.h"
 #include "builtins/type/type.h"
+#include "builtins/export/export.h"
 #include "io/StreamIO.h"
-
-
-#include <chrono>
 
 namespace fs = std::experimental::filesystem;
 
@@ -101,6 +99,10 @@ void Shell::loadBuiltins()
     if (this->builtins->registerBuiltin("type", std::make_shared<builtins::Type>(this->io, this->builtins)) == -1)
     {
         this->io->error("Error with register builtin 'type'");
+    }
+    if (this->builtins->registerBuiltin("export", std::make_shared<builtins::Export>()) == -1)
+    {
+        this->io->error("Error with register builtin 'export'");
     }
 }
 

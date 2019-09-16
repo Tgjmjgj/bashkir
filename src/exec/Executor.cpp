@@ -40,6 +40,10 @@ int Executor::execute(const Command &cmd)
         {
             close(pipe);
         }
+        for (const EnvVar &env : cmd.env)
+        {
+            setenv(env.name.c_str(), env.value.c_str(), 1);
+        }
         char *const *args = util::createExecArgs(cmd.exe, cmd.args);
         int err_code = execvp(cmd.exe.c_str(), args);
         if (err_code == -1)

@@ -14,11 +14,18 @@ enum PipeFlow
     FILE_FROM_RIGHT
 };
 
+struct EnvVar
+{
+    std::string name;
+    std::string value;
+};
+
 struct Command
 {
     std::string exe;
     std::vector<std::string> args;
     PipeFlow io = NORMAL;
+    std::vector<EnvVar> env;
 };
 
 } // namespace bashkir
