@@ -121,6 +121,23 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
             this->index = this->iend = this->setHistoryItem();
         }
     }
+    else if (csi_seq == SEQ_DELETE)
+    {
+        if (this->index < this->iend)
+        {
+            std::size_t subs_len = this->iend - this->index - 1;
+            char *last_part = util::substr(this->buffer, this->index + 1, subs_len);
+            this->io->write(last_part);
+            this->io->write(' ');
+            this->buffer[this->iend] = '\0';
+            --(this->iend);
+            this->io->write(std::string(subs_len + 1, '\b'));
+            for (std::size_t i = 0; i <= subs_len; ++i)
+            {
+                this->buffer[this->index + i] = this->buffer[this->index + i + 1];
+            }
+        }
+    }
 }
 
 void InputHandler::pressSimpleKey(char ch)
