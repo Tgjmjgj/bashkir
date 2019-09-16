@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <termios.h>
+#include <sys/wait.h>
 #include "logger/interface/BaseLogger.h"
 #include "logger/SpdFileLogger.h"
 
@@ -24,14 +25,31 @@ namespace global
 {
 
 inline bool restore_term_atexit = true;
-inline termios settings_before;
+inline termios settings_classic;
+inline termios settings_bashkir;
 
-inline void restoreTermSettings()
+inline bool bashkirTermSettings()
+{
+    return tcsetattr(0, TCSANOW, &settings_bashkir) >= 0;
+    
+}
+
+inline bool classicTermSettings()
+{
+    return tcsetattr(0, TCSANOW, &settings_classic) >= 0;
+}
+
+inline void atexit()
 {
     if (restore_term_atexit)
     {
-        tcsetattr(STDIN_FILENO, TCSANOW, &settings_before);
+        classicTermSettings();
     }
+}
+
+inline void antiZombie(int signum)
+{
+    wait(NULL);
 }
 
 } // namespace bashkir::global

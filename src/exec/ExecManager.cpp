@@ -20,6 +20,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     int next_in = STDIN_FILENO;
     if (LOG_L2) log::to->Info("RUN COMMANDS:");
     std::vector<FilesRedirect> mul_files;
+    global::classicTermSettings();
     for (std::size_t i = 0; i < cmds.size();)
     {
         std::size_t step = 1;
@@ -48,14 +49,27 @@ int ExecManager::execute(std::vector<Command> cmds)
                 }
                 ++step;
             }
-            int pipe_ids[2];
-            pipe(pipe_ids);
-            file_pipes.push_back(pipe_ids[0]);
-            file_pipes.push_back(pipe_ids[1]);
-            out = pipe_ids[1];
+            if (redir.files.size() == 1)
+            {
+                FILE* file = fopen(
+                    redir.files[0].filename.c_str(),
+                    (redir.files[0].mode == std::ios_base::out ? "w" : "a")
+                );
+                int fd = fileno(file);
+                file_pipes.push_back(fd);
+                out = fd;
+            }
+            else
+            {
+                int pipe_ids[2];
+                pipe(pipe_ids);
+                file_pipes.push_back(pipe_ids[0]);
+                file_pipes.push_back(pipe_ids[1]);
+                out = pipe_ids[1];
+                redir.pipe_in = pipe_ids[0];
+                mul_files.push_back(redir);
+            }
             next_in = STDIN_FILENO;
-            redir.pipe_in = pipe_ids[0];
-            mul_files.push_back(redir);
         }
         else
         {
@@ -90,6 +104,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     {
         close(pipe_id);
     }
+    global::bashkirTermSettings();
     return 0;
 }
 
@@ -124,15 +139,13 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
                 this->io->error("Error with opening file " + file_info.filename);
             }
         }
-        const int buf_size = 64;
-        char buf[buf_size];
+        char buf;
         log::to->Info("Write to file:");
         while (read(redir.pipe_in, &buf, sizeof(buf)) > 0)
         {
             for (std::ofstream *filestream : files)
             {
                 (*filestream) << buf;
-                log::to->Info(buf);
             }
         }
         for (std::ofstream *filestream : files)

@@ -15,6 +15,9 @@
 #include "builtins/type/type.h"
 #include "io/StreamIO.h"
 
+
+#include <chrono>
+
 namespace fs = std::experimental::filesystem;
 
 namespace bashkir
@@ -24,8 +27,8 @@ Shell::Shell()
 {
     this->io = std::make_shared<StreamIO>();
 
-    memset(&global::settings_before, 0, sizeof(termios));
-    tcgetattr(0, &global::settings_before);
+    memset(&global::settings_classic, 0, sizeof(termios));
+    tcgetattr(0, &global::settings_classic);
     if (isatty(STDIN_FILENO))
     {
         setvbuf(stdin, NULL, _IONBF, 0);
@@ -38,19 +41,20 @@ Shell::Shell()
     {
         setvbuf(stderr, NULL, _IONBF, 0);
     }
-    termios settings;
-    memset(&settings, 0, sizeof(termios));
-    settings.c_cflag |= util::i2ui(CREAD);
-    settings.c_cflag |= util::i2ui(CS8);
-    settings.c_oflag |= util::i2ui(OPOST);
-    settings.c_oflag |= util::i2ui(ONLCR);
-    settings.c_cc[VMIN]  = 1; // 0
-    settings.c_cc[VTIME] = 0;
-    atexit(global::restoreTermSettings);
-    if (tcsetattr(0, TCSANOW, &settings) < 0)
+    memset(&global::settings_bashkir, 0, sizeof(termios));
+    global::settings_bashkir.c_cflag |= util::i2ui(CREAD);
+    global::settings_bashkir.c_cflag |= util::i2ui(CS8);
+    global::settings_bashkir.c_oflag |= util::i2ui(OPOST);
+    global::settings_bashkir.c_oflag |= util::i2ui(ONLCR);
+    global::settings_bashkir.c_cc[VMIN]  = 1; // 0
+    global::settings_bashkir.c_cc[VTIME] = 0;
+    
+    if (!global::bashkirTermSettings())
     {
         this->io->error("Error with setting new term properties.");
     }
+    atexit(global::atexit);
+    signal(SIGCHLD, global::antiZombie);
     fs::current_path(getenv("HOME"));
     this->init();
 }
