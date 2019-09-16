@@ -25,7 +25,18 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
         if (this->substitution(item))
         {
             it.setValue(item);
+            // When value on iter changed, next incremented iter value will refer to new value
             continue;
+        }
+        // Env var setting can be only in begin of input
+        if (it == items.begin())
+        {
+            std::tuple<std::string, std::string> parts = util::splitInHalf(item, '=');
+            if (std::get<1>(parts) != "")
+            {
+                setenv(std::get<0>(parts).c_str(), std::get<1>(parts).c_str(), 1);
+                continue;
+            }
         }
         if (item == "|")
         {
@@ -135,7 +146,7 @@ bool BashkirCmdParser::substituteHist(std::string &argument) const
 bool BashkirCmdParser::substituteEnv(std::string &argument) const
 {
     bool is_changed = false;
-    const std::regex re("\\$[A-Z_][A-Z0-9_]*");
+    const std::regex re("\\$[A-Za-z_][A-Za-z0-9_]*");
     std::sregex_iterator sr_begin(argument.begin(), argument.end(), re), sr_end;
     std::vector<std::tuple<std::size_t, std::size_t>> poses;
     for (std::sregex_iterator i = sr_begin; i != sr_end; ++i)

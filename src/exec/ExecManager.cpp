@@ -20,7 +20,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     int next_in = STDIN_FILENO;
     if (LOG_L2) log::to->Info("RUN COMMANDS:");
     std::vector<FilesRedirect> mul_files;
-    global::classicTermSettings();
+    bool term_reset = false;
     for (std::size_t i = 0; i < cmds.size();)
     {
         std::size_t step = 1;
@@ -82,6 +82,11 @@ int ExecManager::execute(std::vector<Command> cmds)
         }
         else
         {
+            if (!term_reset)
+            {
+                global::classicTermSettings();
+                term_reset = true;
+            }
             Executor exec(this->io, in, out, err, pipes);
             subprocs.push_back(exec);
             exec.execute(cmds[i]);
@@ -104,7 +109,10 @@ int ExecManager::execute(std::vector<Command> cmds)
     {
         close(pipe_id);
     }
-    global::bashkirTermSettings();
+    if (term_reset)
+    {
+        global::bashkirTermSettings();
+    }
     return 0;
 }
 

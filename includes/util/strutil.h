@@ -61,4 +61,19 @@ inline std::vector<std::string> split(const std::string &base, const char delim)
     return parts;
 }
 
+inline std::tuple<std::string, std::string> splitInHalf(const std::string &base, const char delim)
+{
+    std::size_t split_pos = base.find(delim);
+    if (split_pos == std::string::npos)
+    {
+        return std::make_tuple(base, "");
+    }
+    else
+    {
+        std::string part_1 = base.substr(0, split_pos);
+        std::string part_2 = base.substr(split_pos + 1);
+        return std::make_tuple(part_1, part_2);
+    }
+}
+
 } // namespace bashkir::util
