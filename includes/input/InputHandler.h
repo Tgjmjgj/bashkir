@@ -29,6 +29,7 @@ public:
 private:
     void pressCSIsequence(std::string csi_seq);
     void pressSimpleKey(char ch);
+    void writeChars(const std::string &chars);
     std::size_t setHistoryItem();
 };
 

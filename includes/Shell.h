@@ -31,6 +31,7 @@ public:
 private:
     void init();
     void loadBuiltins();
+    void signalHandlers();
     void writePrefix() const;
     std::string waitInput() const;
 };

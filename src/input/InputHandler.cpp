@@ -14,6 +14,7 @@
 
 #define KEY_ENTER '\r'
 #define KEY_BACKSPACE '\177'
+#define KEY_CTRL_C '\3'
 
 #define MIN_CSI_SEQ_LEN 3
 
@@ -147,22 +148,33 @@ void InputHandler::pressSimpleKey(char ch)
             }
         }
         break;
+    case KEY_CTRL_C:
+        this->writeChars("^C");
+        break;
     default:
-        std::size_t subs_len = this->iend - this->index;
-        char *last_part = util::substr(this->buffer, this->index, subs_len);
-        this->io->write(ch);
-        this->io->write(last_part);
-        ++(this->index);
-        ++(this->iend);
-        this->io->write(std::string(subs_len, '\b'));
-        for (std::size_t i = subs_len + 1; i != 0; --i)
-        {
-            this->buffer[this->index + i - 1] = this->buffer[this->index + i - 2];
-        }
-        this->buffer[this->index - 1] = ch;
-        assert(this->iend == strlen(this->buffer));
+        this->writeChars(std::string(1, ch));
         break;
     }
+}
+
+void InputHandler::writeChars(const std::string &chars)
+{
+    std::size_t subs_len = this->iend - this->index;
+    char *last_part = util::substr(this->buffer, this->index, subs_len);
+    this->io->write(chars);
+    this->io->write(last_part);
+    this->index += chars.length();
+    this->iend += chars.length();
+    this->io->write(std::string(subs_len, '\b'));
+    for (std::size_t i = subs_len + 1; i != 0; --i)
+    {
+        this->buffer[this->index + i - 1] = this->buffer[this->index + i - 2];
+    }
+    for (std::size_t i = 0; i < chars.length(); ++i)
+    {
+        this->buffer[this->index - chars.length() + i] = chars[i];
+    }
+    assert(this->iend == strlen(this->buffer));
 }
 
 std::size_t InputHandler::setHistoryItem()

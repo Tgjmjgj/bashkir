@@ -52,7 +52,6 @@ Shell::Shell()
         this->io->error("Error with setting new term properties.");
     }
     atexit(global::atexit);
-    signal(SIGCHLD, global::antiZombie);
     fs::current_path(getenv("HOME"));
     this->init();
 }
@@ -104,6 +103,12 @@ void Shell::loadBuiltins()
     {
         this->io->error("Error with register builtin 'export'");
     }
+}
+
+void Shell::signalHandlers()
+{
+    signal(SIGINT, global::disableCtrlC);
+    signal(SIGCHLD, global::antiZombie);
 }
 
 int Shell::run()

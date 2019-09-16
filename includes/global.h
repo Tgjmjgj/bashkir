@@ -52,6 +52,11 @@ inline void antiZombie(int signum)
     wait(NULL);
 }
 
+inline void disableCtrlC(int signum)
+{
+    NULL;
+}
+
 } // namespace bashkir::global
 
 } // namespace bashkir
