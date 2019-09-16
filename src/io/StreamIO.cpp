@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdarg>
 #include "io/StreamIO.h"
 
 namespace bashkir
@@ -21,16 +22,21 @@ void StreamIO::writeStr(const std::string &str) const
     std::cout << str << '\n';
 }
 
-// Not implemented
 void StreamIO::format(const std::string &fmt_str, ...) const
 {
-    std::cout << fmt_str;
+    va_list arg_ptr;
+    va_start(arg_ptr, fmt_str);
+    vprintf(fmt_str.c_str(), arg_ptr);
+    va_end(arg_ptr);
 }
 
-// Not implemented
 void StreamIO::formatStr(const std::string &fmt_str, ...) const
 {
-    std::cout << fmt_str << '\n';
+    va_list arg_ptr;
+    va_start(arg_ptr, fmt_str);
+    vprintf(fmt_str.c_str(), arg_ptr);
+    va_end(arg_ptr);
+    printf("\n");
 }
 
 void StreamIO::error(const std::string &err_msg) const
