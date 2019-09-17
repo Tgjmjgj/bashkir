@@ -77,4 +77,23 @@ inline std::tuple<std::string, std::string> splitInHalf(const std::string &base,
     }
 }
 
+inline std::string join(const std::vector<std::string> &strs, const std::string &between)
+{
+    if (strs.size() == 0)
+    {
+        return "";
+    }
+    else if (strs.size() == 1)
+    {
+        return strs[0];
+    }
+    std::stringstream ss;
+    ss << strs[0];
+    for (std::size_t i = 1; i < strs.size(); ++i)
+    {
+        ss << between << strs[i];
+    }
+    return ss.str();
+}
+
 } // namespace bashkir::util

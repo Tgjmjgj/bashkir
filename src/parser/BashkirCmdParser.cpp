@@ -6,8 +6,6 @@
 #include "util/pathutil.h"
 #include "util/convutil.h"
 
-#include <iostream>
-
 namespace bashkir
 {
 
@@ -94,7 +92,8 @@ bool BashkirCmdParser::substitution(std::string &argument) const
 {
     bool is_changed1 = this->substituteHist(argument);
     bool is_changed2 = this->substituteEnv(argument);
-    return is_changed1 || is_changed2;
+    bool is_changed3 = this->substituteGlob(argument);
+    return is_changed1 || is_changed2 || is_changed3;
 }
 
 bool BashkirCmdParser::substituteHist(std::string &argument) const
@@ -169,6 +168,24 @@ bool BashkirCmdParser::substituteEnv(std::string &argument) const
         char *env_val = getenv(env_name.c_str());
         const std::string env_str = env_val == nullptr ? std::string() : std::string(env_val);
         argument.replace(start, len, env_str);
+    }
+    return is_changed;
+}
+
+bool BashkirCmdParser::substituteGlob(std::string &argument) const
+{
+    bool is_changed = false;
+    std::string glob_traits = "?*+@!";
+    if (argument.find_first_of(glob_traits) != std::string::npos)
+    {
+        std::string copy = argument;
+        std::vector<std::string> files = util::glob(argument);
+        std::string new_str = util::join(files, " ");
+        if (new_str != copy)
+        {
+            is_changed = true;
+            argument = new_str;
+        }
     }
     return is_changed;
 }

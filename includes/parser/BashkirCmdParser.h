@@ -18,6 +18,7 @@ public:
     bool substitution(std::string &argument) const;
     bool substituteHist(std::string &argument) const;
     bool substituteEnv(std::string &argument) const;
+    bool substituteGlob(std::string &argument) const;
 
 };
 
