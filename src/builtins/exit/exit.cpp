@@ -7,6 +7,7 @@ namespace bashkir::builtins
 int Exit::exec(const Command &cmd)
 {
     log::to->Info("Exit attempt!");
+    io.writeStr("bashkir> Good By!");
     exit(0);
     return 0;
 }
