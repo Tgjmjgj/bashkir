@@ -57,6 +57,8 @@ inline void disableCtrlC(int signum)
     NULL;
 }
 
+inline uint8_t bad_alloc_chain = 0;
+
 } // namespace bashkir::global
 
 } // namespace bashkir

@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <experimental/filesystem>
 #include <termios.h>
+#include <exception>
 #include "Shell.h"
 #include "global.h"
 #include "parser/BashkirCmdParser.h"
@@ -115,10 +116,28 @@ int Shell::run()
 {
     while (true)
     {
-        this->writePrefix();
-        const std::string inputStr = this->input->waitInput();
-        std::vector<Command> cmds = this->parser->parse(inputStr);
-        this->exec->execute(cmds);
+        try
+        {
+            this->writePrefix();
+            const std::string inputStr = this->input->waitInput();
+            std::vector<Command> cmds = this->parser->parse(inputStr);
+            this->exec->execute(cmds);
+            global::bad_alloc_chain = 0;
+        }
+        catch(const std::bad_alloc &e)
+        {
+            log::to->Err(e.what());
+            if (global::bad_alloc_chain > 2) 
+            {
+                log::to->Err("The memory allocation problem occured 3 times in a row.");
+                exit(1);
+            }
+            ++global::bad_alloc_chain;
+        }
+        catch(const std::exception & e)
+        {
+            log::to->Err(e.what());
+        }
     }
     return 0;
 }
