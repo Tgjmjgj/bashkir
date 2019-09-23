@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include "logger/interface/BaseLogger.h"
 #include "logger/SpdFileLogger.h"
+#include "io/StreamIO.h"
 
 namespace bashkir
 {
@@ -11,6 +12,8 @@ namespace bashkir
 #define LOG_L1 log::level > 0
 #define LOG_L2 log::level > 1
 #define LOG_L3 log::level > 2
+
+inline StreamIO io;
 
 namespace log
 {

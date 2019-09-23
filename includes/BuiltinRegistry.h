@@ -3,7 +3,6 @@
 #include <map>
 #include <memory>
 #include "builtins/Builtin.h"
-#include "io/interface/BaseIO.h"
 
 namespace bashkir
 {

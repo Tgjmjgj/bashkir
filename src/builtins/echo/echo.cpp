@@ -1,15 +1,15 @@
-#include "builtins/echo/echo.h"
 #include <experimental/filesystem>
 #include <numeric>
 #include <iostream>
+#include "builtins/echo/echo.h"
+#include "global.h"
 
 namespace fs = std::experimental::filesystem;
 
 namespace bashkir::builtins
 {
 
-Echo::Echo(std::shared_ptr<BaseIO> nc_io)
-    : io(std::move(nc_io)) {}
+Echo::Echo() {}
 
 int Echo::exec(const Command &cmd)
 {
@@ -21,7 +21,7 @@ int Echo::exec(const Command &cmd)
             return accum + next;
         }
     );
-    this->io->writeStr(echo_cmd);
+    io.writeStr(echo_cmd);
     return 0;
 }
 

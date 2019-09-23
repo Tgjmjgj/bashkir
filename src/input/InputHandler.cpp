@@ -29,8 +29,8 @@ const std::vector<std::string> CSI_seqs = {
     SEQ_DELETE
 };
 
-InputHandler::InputHandler(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history)
-    : io(std::move(nc_io)), hist(std::move(history)) {}
+InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
+    : hist(std::move(history)) {}
 
 std::string InputHandler::waitInput()
 {
@@ -93,7 +93,7 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
     {
         if (this->index > 0)
         {
-            this->io->write('\b');
+            io.write('\b');
             --(this->index);
         }
     }
@@ -101,7 +101,7 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
     {
         if (this->index < this->iend)
         {
-            this->io->write(SEQ_RIGHT_ARROW);
+            io.write(SEQ_RIGHT_ARROW);
             ++(this->index);
         }
     }
@@ -127,11 +127,11 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
         {
             std::size_t subs_len = this->iend - this->index - 1;
             char *last_part = util::substr(this->buffer, this->index + 1, subs_len);
-            this->io->write(last_part);
-            this->io->write(' ');
+            io.write(last_part);
+            io.write(' ');
             this->buffer[this->iend] = '\0';
             --(this->iend);
-            this->io->write(std::string(subs_len + 1, '\b'));
+            io.write(std::string(subs_len + 1, '\b'));
             for (std::size_t i = 0; i <= subs_len; ++i)
             {
                 this->buffer[this->index + i] = this->buffer[this->index + i + 1];
@@ -145,20 +145,20 @@ void InputHandler::pressSimpleKey(char ch)
     switch (ch)
     {
     case KEY_ENTER:
-        this->io->write("\r\n");
+        io.write("\r\n");
         break;
     case KEY_BACKSPACE:
         if (this->index > 0)
         {
             std::size_t subs_len = this->iend - this->index;
             char *last_part = util::substr(this->buffer, this->index, subs_len);
-            this->io->write('\b');
-            this->io->write(last_part);
-            this->io->write(" \b");
+            io.write('\b');
+            io.write(last_part);
+            io.write(" \b");
             this->buffer[this->iend] = '\0';
             --(this->index);
             --(this->iend);
-            this->io->write(std::string(subs_len, '\b'));
+            io.write(std::string(subs_len, '\b'));
             for (std::size_t i = 0; i <= subs_len; ++i)
             {
                 this->buffer[this->index + i] = this->buffer[this->index + i + 1];
@@ -178,11 +178,11 @@ void InputHandler::writeChars(const std::string &chars)
 {
     std::size_t subs_len = this->iend - this->index;
     char *last_part = util::substr(this->buffer, this->index, subs_len);
-    this->io->write(chars);
-    this->io->write(last_part);
+    io.write(chars);
+    io.write(last_part);
     this->index += chars.length();
     this->iend += chars.length();
-    this->io->write(std::string(subs_len, '\b'));
+    io.write(std::string(subs_len, '\b'));
     for (std::size_t i = subs_len + 1; i != 0; --i)
     {
         this->buffer[this->index + i - 1] = this->buffer[this->index + i - 2];
@@ -197,14 +197,14 @@ void InputHandler::writeChars(const std::string &chars)
 std::size_t InputHandler::setHistoryItem()
 {
     std::string hist_item = (*(this->hist))[this->hist_ind];
-    this->io->write(std::string(this->index, '\b'));
-    this->io->write(hist_item);
+    io.write(std::string(this->index, '\b'));
+    io.write(hist_item);
     std::size_t max_space = this->iend > hist_item.length() ? this->iend : hist_item.length();
     if (max_space == this->iend)
     {
         std::size_t free_space_len = this->iend - hist_item.length();
-        this->io->write(std::string(free_space_len, ' '));
-        this->io->write(std::string(free_space_len, '\b'));
+        io.write(std::string(free_space_len, ' '));
+        io.write(std::string(free_space_len, '\b'));
     }
     for (std::size_t i = 0; i < max_space; ++i)
     {

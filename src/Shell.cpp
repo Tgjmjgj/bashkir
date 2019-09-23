@@ -15,7 +15,6 @@
 #include "builtins/exit/exit.h"
 #include "builtins/type/type.h"
 #include "builtins/export/export.h"
-#include "io/StreamIO.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -24,8 +23,6 @@ namespace bashkir
 
 Shell::Shell()
 {
-    this->io = std::make_shared<StreamIO>();
-
     memset(&global::settings_classic, 0, sizeof(termios));
     tcgetattr(0, &global::settings_classic);
     if (isatty(STDIN_FILENO))
@@ -50,7 +47,7 @@ Shell::Shell()
     
     if (!global::bashkirTermSettings())
     {
-        this->io->error("Error with setting new term properties.");
+        io.error("Error with setting new term properties.");
     }
     atexit(global::atexit);
     fs::current_path(getenv("HOME"));
@@ -62,47 +59,47 @@ Shell::~Shell() {}
 void Shell::init()
 {
     this->history = std::make_shared<std::vector<std::string>>();
-    this->input = std::make_unique<InputHandler>(this->io, this->history);
-    this->parser = std::make_unique<BashkirCmdParser>(this->io, this->history);
+    this->input = std::make_unique<InputHandler>(this->history);
+    this->parser = std::make_unique<BashkirCmdParser>(this->history);
     this->builtins = std::make_shared<BuiltinRegistry>();
-    this->exec = std::make_unique<ExecManager>(this->io, this->builtins);
+    this->exec = std::make_unique<ExecManager>(this->builtins);
     this->loadBuiltins();
 }
 
 void Shell::loadBuiltins()
 {
-    const std::shared_ptr<builtins::Cd> cd = std::make_shared<builtins::Cd>(this->io);
+    const std::shared_ptr<builtins::Cd> cd = std::make_shared<builtins::Cd>();
     if (this->builtins->registerBuiltin("cd", cd) == -1)
     {
-        this->io->error("Error with register builtin 'cd'");
+        io.error("Error with register builtin 'cd'");
     }
     if (this->builtins->registerBuiltin("pushd", cd) == -1)
     {
-        this->io->error("Error with register builtin 'pushd'");
+        io.error("Error with register builtin 'pushd'");
     }
     if (this->builtins->registerBuiltin("popd", cd) == -1)
     {
-        this->io->error("Error with register builtin 'popd'");
+        io.error("Error with register builtin 'popd'");
     }
-    if (this->builtins->registerBuiltin("pwd", std::make_shared<builtins::Pwd>(this->io)) == -1)
+    if (this->builtins->registerBuiltin("pwd", std::make_shared<builtins::Pwd>()) == -1)
     {
-        this->io->error("Error with register builtin 'pwd'");
+        io.error("Error with register builtin 'pwd'");
     }
-    if (this->builtins->registerBuiltin("history", std::make_shared<builtins::History>(this->io, this->history)) == -1)
+    if (this->builtins->registerBuiltin("history", std::make_shared<builtins::History>(this->history)) == -1)
     {
-        this->io->error("Error with register builtin 'history'");
+        io.error("Error with register builtin 'history'");
     }
     if (this->builtins->registerBuiltin("exit", std::make_shared<builtins::Exit>()) == -1)
     {
-        this->io->error("Error with register builtin 'exit'");
+        io.error("Error with register builtin 'exit'");
     }
-    if (this->builtins->registerBuiltin("type", std::make_shared<builtins::Type>(this->io, this->builtins)) == -1)
+    if (this->builtins->registerBuiltin("type", std::make_shared<builtins::Type>(this->builtins)) == -1)
     {
-        this->io->error("Error with register builtin 'type'");
+        io.error("Error with register builtin 'type'");
     }
     if (this->builtins->registerBuiltin("export", std::make_shared<builtins::Export>()) == -1)
     {
-        this->io->error("Error with register builtin 'export'");
+        io.error("Error with register builtin 'export'");
     }
 }
 
@@ -146,7 +143,7 @@ void Shell::writePrefix() const
 {
     std::string cPath = fs::current_path().c_str();
     util::fullToHomeRel(cPath);
-    this->io->write("paradox> " + cPath + " $ ");
+    io.write("paradox> " + cPath + " $ ");
 }
 
 } // namespace bashkir

@@ -10,8 +10,8 @@
 namespace bashkir
 {
 
-Executor::Executor(std::shared_ptr<BaseIO> nc_io, int i, int o, int e, const std::vector<int> &pp)
-    : io(std::move(nc_io)), in(i), out(o), err(e), all_pipes(pp) {}
+Executor::Executor(int i, int o, int e, const std::vector<int> &pp)
+    : in(i), out(o), err(e), all_pipes(pp) {}
 
 int Executor::execute(const Command &cmd)
 {
@@ -21,7 +21,7 @@ int Executor::execute(const Command &cmd)
     {
         if (child_id == -1)
         {
-            this->io->writeStr("Something get wrongs!");
+            io.writeStr("Something get wrongs!");
         }
         this->pid = child_id;
         return child_id;
@@ -51,10 +51,10 @@ int Executor::execute(const Command &cmd)
             switch (errno)
             {
             case 2:
-                this->io->writeStr("Command '" + cmd.exe + "' not found.");
+                io.writeStr("Command '" + cmd.exe + "' not found.");
                 break;
             default:
-                this->io->writeStr(cmd.exe + " return error code " + std::to_string(errno) + ": " + std::strerror(errno));
+                io.writeStr(cmd.exe + " return error code " + std::to_string(errno) + ": " + std::strerror(errno));
                 break;
             }
         }

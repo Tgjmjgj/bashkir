@@ -10,8 +10,8 @@
 namespace bashkir
 {
 
-ExecManager::ExecManager(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<BuiltinRegistry> reg)
-    : io(std::move(nc_io)), builtins(std::move(reg)) {}
+ExecManager::ExecManager(std::shared_ptr<BuiltinRegistry> reg)
+    : builtins(std::move(reg)) {}
 
 int ExecManager::execute(std::vector<Command> cmds)
 {
@@ -87,7 +87,7 @@ int ExecManager::execute(std::vector<Command> cmds)
                 global::classicTermSettings();
                 term_reset = true;
             }
-            Executor exec(this->io, in, out, err, pipes);
+            Executor exec(in, out, err, pipes);
             subprocs.push_back(exec);
             exec.execute(cmds[i]);
         }
@@ -121,7 +121,7 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
     const __pid_t child_id = fork();
     if (child_id == -1)
     {
-        this->io->writeStr("Something get wrongs!");
+        io.writeStr("Something get wrongs!");
     }
     else if (child_id == 0) // child process
     {
@@ -144,7 +144,7 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
             }
             catch(const std::exception& e)
             {
-                this->io->error("Error with opening file " + file_info.filename);
+                io.error("Error with opening file " + file_info.filename);
             }
         }
         char buf;

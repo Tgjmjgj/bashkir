@@ -5,12 +5,13 @@
 #include "parser/ItemsRange.h"
 #include "util/pathutil.h"
 #include "util/convutil.h"
+#include "global.h"
 
 namespace bashkir
 {
 
-BashkirCmdParser::BashkirCmdParser(std::shared_ptr<BaseIO> nc_io, std::shared_ptr<std::vector<std::string>> history)
-    : io(std::move(nc_io)), hist(std::move(history)) {}
+BashkirCmdParser::BashkirCmdParser(std::shared_ptr<std::vector<std::string>> history)
+    : hist(std::move(history)) {}
 
 std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
 {
@@ -138,9 +139,9 @@ bool BashkirCmdParser::substituteHist(std::string &argument) const
             }
             else
             {
-                this->io->write("bashkir: command ");
-                this->io->write(reverse ? "-" : "");
-                this->io->writeStr(num + " is not found in history.");
+                io.write("bashkir: command ");
+                io.write(reverse ? "-" : "");
+                io.writeStr(num + " is not found in history.");
             }
         }
         pos = argument.find('!', pos + 1);
