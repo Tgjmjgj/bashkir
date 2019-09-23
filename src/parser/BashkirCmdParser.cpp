@@ -15,7 +15,7 @@ BashkirCmdParser::BashkirCmdParser(std::shared_ptr<std::vector<std::string>> his
 
 std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
 {
-    if (hist->size() == 0 || hist->size() != 0 && hist->at(hist->size() - 1) != input_str) {
+    if (hist->size() == 0 || (hist->size() != 0 && hist->at(hist->size() - 1) != input_str)) {
         hist->push_back(input_str);
     }
     std::vector<Command> cmds = std::vector<Command>();

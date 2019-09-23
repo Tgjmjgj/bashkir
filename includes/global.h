@@ -34,7 +34,6 @@ inline termios settings_bashkir;
 inline bool bashkirTermSettings()
 {
     return tcsetattr(0, TCSANOW, &settings_bashkir) >= 0;
-    
 }
 
 inline bool classicTermSettings()

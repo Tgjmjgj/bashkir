@@ -58,7 +58,7 @@ int Executor::execute(const Command &cmd)
                 break;
             }
         }
-        return 0;
+        exit(err_code);
     }
 }
 
