@@ -4,7 +4,7 @@
 // #include <vector>
 // #include <string>
 // #include <sstream>
-// #include <cstring>
+// #include <string.h>
 
 namespace bashkir::util
 {

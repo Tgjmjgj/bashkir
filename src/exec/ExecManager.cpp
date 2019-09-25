@@ -5,8 +5,6 @@
 #include "exec/Executor.h"
 #include "global.h"
 
-#define SFILE(x) (x == PipeFlow::TO_FILE || x == PipeFlow::TO_FILE_APPEND)
-
 namespace bashkir
 {
 
@@ -18,7 +16,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     std::vector<int> pipes, file_pipes;
     std::vector<Executor> subprocs;
     int next_in = STDIN_FILENO;
-    if (LOG_L2) log::to->Info("RUN COMMANDS:");
+    if (log::Lev2()) log::to->Info("RUN COMMANDS:");
     std::vector<FilesRedirect> mul_files;
     bool term_reset = false;
     for (std::size_t i = 0; i < cmds.size();)
@@ -36,10 +34,10 @@ int ExecManager::execute(std::vector<Command> cmds)
             out = pipe_ids[1];
             next_in = pipe_ids[0];
         } 
-        else if (SFILE(cmds[i].io))
+        else if (isRedirToFile(cmds[i].io))
         {
             FilesRedirect redir;
-            for (std::size_t j = i; j < cmds.size() - 1 && SFILE(cmds[j].io); ++j)
+            for (std::size_t j = i; j < cmds.size() - 1 && isRedirToFile(cmds[j].io); ++j)
             {
                 auto mode = cmds[j].io == PipeFlow::TO_FILE ? std::ios_base::out : std::ios_base::app;
                 redir.files.push_back(FileMode(cmds[j + 1].exe, mode));

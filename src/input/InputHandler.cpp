@@ -1,6 +1,5 @@
-// #include <iostream>
 // #include <iterator>
-// #include <cstring>
+// #include <string.h>
 // #include <unistd.h>
 #include "input/InputHandler.h"
 #include "util/strutil.h"
@@ -64,7 +63,7 @@ std::string InputHandler::waitInput()
                         if (eq)
                         {
                             found_csi = true;
-                            if (LOG_L3) log::to->Info(csi);
+                            if (log::Lev3()) log::to->Info(csi);
                             this->pressCSIsequence(csi);
                             i += csi.length();
                             break;
@@ -74,7 +73,7 @@ std::string InputHandler::waitInput()
             }
             if (!found_csi)
             {
-                if (LOG_L3) log::to->Info(this->tmp_buf[i]);
+                if (log::Lev3()) log::to->Info(this->tmp_buf[i]);
                 this->pressSimpleKey(this->tmp_buf[i]);
                 if (tmp_buf[i] == '\r')
                 {

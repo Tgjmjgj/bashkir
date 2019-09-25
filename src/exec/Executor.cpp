@@ -1,8 +1,7 @@
 // #include <unistd.h>
-// #include <iostream>
 // #include <string.h>
 // #include <sys/wait.h>
-// #include <cstring>
+// #include <string.h>
 #include "exec/Executor.h"
 #include "util/convutil.h"
 #include "global.h"
@@ -15,7 +14,7 @@ Executor::Executor(int i, int o, int e, const std::vector<int> &pp)
 
 int Executor::execute(const Command &cmd)
 {
-    if (LOG_L2) log::to->Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
+    if (log::Lev2()) log::to->Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
     const __pid_t child_id = fork();
     if (child_id) // parent process
     {

@@ -1,6 +1,5 @@
 // #include <experimental/filesystem>
 // #include <numeric>
-// #include <iostream>
 #include "builtins/echo/echo.h"
 #include "global.h"
 

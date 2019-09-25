@@ -1,6 +1,6 @@
 // #include <string.h>
 // #include <regex>
-// #include <cctype>
+// #include <ctype.h>
 #include "parser/BashkirCmdParser.h"
 #include "parser/ItemsRange.h"
 #include "util/pathutil.h"

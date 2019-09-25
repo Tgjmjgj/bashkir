@@ -29,4 +29,8 @@ struct Command
     std::vector<EnvVar> env;
 };
 
+inline bool isRedirToFile(const PipeFlow &pipe_mode) {
+    return (pipe_mode == PipeFlow::TO_FILE || pipe_mode == PipeFlow::TO_FILE_APPEND);
+}
+
 } // namespace bashkir
