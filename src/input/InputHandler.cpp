@@ -1,25 +1,25 @@
-#include <iostream>
-#include <iterator>
-#include <cstring>
-#include <unistd.h>
+// #include <iostream>
+// #include <iterator>
+// #include <cstring>
+// #include <unistd.h>
 #include "input/InputHandler.h"
 #include "util/strutil.h"
 #include "global.h"
 
-#define SEQ_LEFT_ARROW "\033[D"
-#define SEQ_RIGHT_ARROW "\033[C"
-#define SEQ_UP_ARROW "\033[A"
-#define SEQ_DOWN_ARROW "\033[B"
-#define SEQ_DELETE "\033[3~"
-
-#define KEY_ENTER '\r'
-#define KEY_BACKSPACE '\177'
-#define KEY_CTRL_C '\3'
-
-#define MIN_CSI_SEQ_LEN 3
-
 namespace bashkir
 {
+
+const char *const SEQ_LEFT_ARROW = "\033[D";
+const char *const SEQ_RIGHT_ARROW = "\033[C";
+const char *const SEQ_UP_ARROW = "\033[A";
+const char *const SEQ_DOWN_ARROW = "\033[B";
+const char *const SEQ_DELETE = "\033[3~";
+
+const char BS_KEY_ENTER = '\r';
+const char BS_KEY_BACKSPACE = '\177';
+const char BS_KEY_CTRL_C = '\3';
+
+const uint8_t MIN_CSI_SEQ_LEN = 3;
 
 const std::vector<std::string> CSI_seqs = {
     SEQ_LEFT_ARROW,
@@ -144,10 +144,10 @@ void InputHandler::pressSimpleKey(char ch)
 {
     switch (ch)
     {
-    case KEY_ENTER:
+    case BS_KEY_ENTER:
         io.write("\r\n");
         break;
-    case KEY_BACKSPACE:
+    case BS_KEY_BACKSPACE:
         if (this->index > 0)
         {
             std::size_t subs_len = this->iend - this->index;
@@ -165,7 +165,7 @@ void InputHandler::pressSimpleKey(char ch)
             }
         }
         break;
-    case KEY_CTRL_C:
+    case BS_KEY_CTRL_C:
         this->writeChars("^C");
         break;
     default:

@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/includes/**",
+                "${workspaceFolder}/pch/**",
                 "${workspaceFolder}/thirdparty/includes/**",
                 "~/.conan/data/**"
             ],

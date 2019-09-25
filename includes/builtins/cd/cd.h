@@ -1,10 +1,11 @@
 #pragma once
-#include <experimental/filesystem>
-#include <string>
-#include <vector>
-#include <map>
-#include <stack>
-#include <memory>
+#include "deps.h"
+// #include <experimental/filesystem>
+// #include <string>
+// #include <vector>
+// #include <map>
+// #include <stack>
+// #include <memory>
 #include "builtins/Builtin.h"
 
 namespace bashkir::builtins

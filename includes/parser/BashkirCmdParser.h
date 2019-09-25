@@ -1,6 +1,7 @@
 #pragma once
+#include "deps.h"
+// #include <memory>
 #include "parser/interface/ICmdParser.h"
-#include <memory>
 
 namespace bashkir
 {

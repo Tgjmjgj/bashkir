@@ -1,4 +1,3 @@
-
 #include "BuiltinRegistry.h"
 
 namespace bashkir

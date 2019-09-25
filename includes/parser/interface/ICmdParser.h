@@ -1,7 +1,8 @@
 #pragma once
+#include "deps.h"
+// #include <string>
+// #include <vector>
 #include "parser/interface/Command.h"
-#include <string>
-#include <vector>
 
 namespace bashkir
 {

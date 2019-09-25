@@ -1,6 +1,6 @@
-#include <string>
+// #include <string>
+// #include "ncurses/ncurses.h"
 #include "wrappers/NCurses.h"
-#include "ncurses/ncurses.h"
 #include "util/convutil.h"
 
 namespace bashkir

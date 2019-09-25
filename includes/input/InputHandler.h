@@ -1,7 +1,8 @@
 #pragma once
-#include <memory>
-#include <vector>
-#include <string>
+#include "deps.h"
+// #include <memory>
+// #include <vector>
+// #include <string>
 
 #define INPUT_BUFFER_SIZE 1024
 #define TMP_BUFFER_SIZE 10

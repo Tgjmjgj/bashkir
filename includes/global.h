@@ -1,7 +1,8 @@
 #pragma once
-#include <memory>
-#include <termios.h>
-#include <sys/wait.h>
+#include "deps.h"
+// #include <memory>
+// #include <termios.h>
+// #include <sys/wait.h>
 #include "logger/interface/BaseLogger.h"
 #include "logger/SpdFileLogger.h"
 #include "io/StreamIO.h"

@@ -1,7 +1,8 @@
 #pragma once
-#include <string>
-#include <map>
-#include <memory>
+#include "deps.h"
+// #include <string>
+// #include <map>
+// #include <memory>
 #include "builtins/Builtin.h"
 
 namespace bashkir

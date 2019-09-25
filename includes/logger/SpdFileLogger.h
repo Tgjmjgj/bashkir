@@ -1,7 +1,7 @@
 #pragma once
-#include <memory>
+#include "deps.h"
+// #include <memory>
 #include "logger/interface/BaseLogger.h"
-#include "spdlog/sinks/rotating_file_sink.h"
 
 namespace bashkir
 {
