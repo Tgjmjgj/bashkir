@@ -76,19 +76,7 @@ std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
     {
         cmds.push_back(cmd);
     }
-    this->postprocess(cmds);
     return cmds;
-}
-
-void BashkirCmdParser::postprocess(std::vector<Command> &cmds) const
-{
-    for (Command &cmd : cmds)
-    {
-        for (std::string &arg : cmd.args)
-        {
-            util::tryHomeRelToFull(arg);
-        }
-    }
 }
 
 bool BashkirCmdParser::substitution(std::string &argument) const
@@ -96,6 +84,7 @@ bool BashkirCmdParser::substitution(std::string &argument) const
     bool is_changed1 = this->substituteHist(argument);
     bool is_changed2 = this->substituteEnv(argument);
     bool is_changed3 = this->substituteGlob(argument);
+    bool is_changed4 = this->substitutePath(argument);
     return is_changed1 || is_changed2 || is_changed3;
 }
 
@@ -191,6 +180,11 @@ bool BashkirCmdParser::substituteGlob(std::string &argument) const
         }
     }
     return is_changed;
+}
+
+bool BashkirCmdParser::substitutePath(std::string &argument) const
+{
+    return util::tryHomeRelToFull(argument);
 }
 
 } // namespace bashkir

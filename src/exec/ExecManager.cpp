@@ -49,11 +49,16 @@ int ExecManager::execute(std::vector<Command> cmds)
             }
             if (redir.files.size() == 1)
             {
-                FILE* file = fopen(
+                int fd = open(
                     redir.files[0].filename.c_str(),
-                    (redir.files[0].mode == std::ios_base::out ? "w" : "a")
+                    O_WRONLY | O_CREAT | (redir.files[0].mode == std::ios_base::out ? 0 : O_CREAT),
+                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH   // -rw-r--r-- or 644
                 );
-                int fd = fileno(file);
+                if (fd == 0) {
+                    std::string msg = "Cannot open file '" + redir.files[0].filename + '\'';
+                    io.error(msg);
+                    log::to->Warn(msg);
+                }
                 file_pipes.push_back(fd);
                 out = fd;
             }
@@ -157,6 +162,7 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
         for (std::ofstream *filestream : files)
         {
             (*filestream).close();
+            delete filestream;
         }
         log::to->Info("All ok. It reachs the end.");
         close(redir.pipe_in);

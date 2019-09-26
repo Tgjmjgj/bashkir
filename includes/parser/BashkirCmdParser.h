@@ -13,11 +13,11 @@ public:
     BashkirCmdParser(std::shared_ptr<std::vector<std::string>> history);
     ~BashkirCmdParser() {}
     std::vector<Command> parse(const std::string &input_str);
-    void postprocess(std::vector<Command> &cmds) const;
     bool substitution(std::string &argument) const;
     bool substituteHist(std::string &argument) const;
     bool substituteEnv(std::string &argument) const;
     bool substituteGlob(std::string &argument) const;
+    bool substitutePath(std::string &argument) const;
 
 };
 
