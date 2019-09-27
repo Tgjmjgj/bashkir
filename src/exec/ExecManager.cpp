@@ -60,6 +60,7 @@ int ExecManager::execute(std::vector<Command> cmds)
                     log::to->Warn(msg);
                 }
                 file_pipes.push_back(fd);
+                pipes.push_back(fd);
                 out = fd;
             }
             else
@@ -68,6 +69,8 @@ int ExecManager::execute(std::vector<Command> cmds)
                 pipe(pipe_ids);
                 file_pipes.push_back(pipe_ids[0]);
                 file_pipes.push_back(pipe_ids[1]);
+                pipes.push_back(pipe_ids[0]);
+                pipes.push_back(pipe_ids[1]);
                 out = pipe_ids[1];
                 redir.pipe_in = pipe_ids[0];
                 mul_files.push_back(redir);
@@ -93,16 +96,13 @@ int ExecManager::execute(std::vector<Command> cmds)
             Executor exec(in, out, err, pipes);
             subprocs.push_back(exec);
             exec.execute(cmds[i]);
+            exec.waitSubproc();
         }
         i += step;
     }
     for (int pipe_id : pipes)
     {
         close(pipe_id);
-    }
-    for (Executor &ex : subprocs)
-    {
-        ex.waitSubproc();
     }
     for (FilesRedirect &redir : mul_files)
     {

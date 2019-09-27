@@ -106,7 +106,7 @@ void Shell::loadBuiltins()
 void Shell::signalHandlers()
 {
     signal(SIGINT, global::disableCtrlC);
-    signal(SIGCHLD, global::antiZombie);
+    // signal(SIGCHLD, global::antiZombie);
 }
 
 int Shell::run()
