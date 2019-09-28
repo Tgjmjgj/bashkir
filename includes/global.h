@@ -4,7 +4,6 @@
 // #include <termios.h>
 // #include <sys/wait.h>
 #include "logger/interface/BaseLogger.h"
-#include "logger/SpdFileLogger.h"
 #include "io/StreamIO.h"
 
 namespace bashkir
@@ -15,8 +14,8 @@ inline StreamIO io;
 namespace log
 {
 
-inline uint8_t log_level = 2;
-inline std::unique_ptr<BaseLogger> to = std::make_unique<SpdFileLogger>();
+inline uint8_t log_level = 0;
+inline std::unique_ptr<BaseLogger> to;
 
 inline bool Lev1() {
     return log_level > 0;

@@ -13,6 +13,8 @@ public:
     virtual void Info(char ch) = 0;
     virtual void Warn(const std::string &msg) = 0;
     virtual void Err(const std::string &msg) = 0;
+
+    virtual void Flush() = 0;
 };
 
 } // namespace bashkir

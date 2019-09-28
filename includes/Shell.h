@@ -31,6 +31,7 @@ private:
     void init();
     void loadBuiltins();
     void signalHandlers();
+    void configureLogger();
     void writePrefix() const;
     std::string waitInput() const;
 };

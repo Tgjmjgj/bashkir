@@ -7,21 +7,25 @@
 namespace bashkir
 {
 
-const char *const LOG_FILE_NAME = "logfile.log";
-const uint LOG_FILE_SIZE = 1048576 * 5; /// 5Mb
-const uint8_t LOG_FILE_NUMBER = 3;
+const std::string DEFAULT_LOG_FILE_NAME = "logfile.log";
+const uint DEFAULT_LOG_FILE_SIZE = 1048576 * 5; /// 5Mb
+const uint8_t DEFAULT_LOG_FILE_NUMBER = 3;
 
 class SpdFileLogger : public BaseLogger
 {
 private:
     std::shared_ptr<spdlog::logger> log;
 public:
-    SpdFileLogger();
+    SpdFileLogger(std::string filename = DEFAULT_LOG_FILE_NAME,
+                  uint filesize = DEFAULT_LOG_FILE_SIZE,
+                  uint8_t file_num = DEFAULT_LOG_FILE_NUMBER);
     ~SpdFileLogger();
-    inline void Info(const std::string &msg);
-    inline void Info(char ch);
-    inline void Warn(const std::string &msg);
-    inline void Err(const std::string &msg);
+    void Info(const std::string &msg);
+    void Info(char ch);
+    void Warn(const std::string &msg);
+    void Err(const std::string &msg);
+
+    void Flush();
 };
 
 } // namespace bashkir

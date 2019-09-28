@@ -6,6 +6,8 @@
 #include "Shell.h"
 #include "global.h"
 #include "parser/BashkirCmdParser.h"
+#include "parser/ExecutionTree.h"
+#include "io/ScopedOutputRedirect.h"
 #include "exec/Executor.h"
 #include "util/pathutil.h"
 #include "util/convutil.h"
@@ -15,6 +17,7 @@
 #include "builtins/exit/exit.h"
 #include "builtins/type/type.h"
 #include "builtins/export/export.h"
+#include "logger/SpdFileLogger.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -54,7 +57,10 @@ Shell::Shell()
     this->init();
 }
 
-Shell::~Shell() {}
+Shell::~Shell()
+{
+    log::to->Flush();
+}
 
 void Shell::init()
 {
@@ -109,6 +115,13 @@ void Shell::signalHandlers()
     // signal(SIGCHLD, global::antiZombie);
 }
 
+void Shell::configureLogger()
+{
+    log::to = std::make_unique<SpdFileLogger>();
+    spdlog::flush_every(std::chrono::seconds(5));
+    log::log_level = 2;
+}
+
 int Shell::run()
 {
     while (true)
@@ -117,7 +130,22 @@ int Shell::run()
         {
             this->writePrefix();
             const std::string inputStr = this->input->waitInput();
-            std::vector<Command> cmds = this->parser->parse(inputStr);
+            ExecutionTree etree;
+            etree.buildTree(inputStr);
+            while (!etree.isCompletedCommand())
+            {
+                auto proc_unit = etree.getNextUnit();
+                std::vector<Command> cmds = this->parser->parse(proc_unit->value);
+                std::string output;
+                {
+                    ScopedOutputRedirect redir;
+                    this->exec->execute(cmds);
+                    output = redir.CollectOutput();
+                }
+                etree.setInnerCommandResult(proc_unit, output);
+            }
+            auto proc_unit = etree.getNextUnit();
+            std::vector<Command> cmds = this->parser->parse(proc_unit->value);
             this->exec->execute(cmds);
             global::bad_alloc_chain = 0;
         }
