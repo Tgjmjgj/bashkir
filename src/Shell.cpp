@@ -8,6 +8,7 @@
 #include "parser/BashkirCmdParser.h"
 #include "parser/ExecutionTree.h"
 #include "io/ScopedOutputRedirect.h"
+#include "io/StdCapture.h"
 #include "exec/Executor.h"
 #include "util/pathutil.h"
 #include "util/convutil.h"
@@ -136,12 +137,10 @@ int Shell::run()
             {
                 auto proc_unit = etree.getNextUnit();
                 std::vector<Command> cmds = this->parser->parse(proc_unit->value);
-                std::string output;
-                {
-                    ScopedOutputRedirect redir;
-                    this->exec->execute(cmds);
-                    output = redir.CollectOutput();
-                }
+                StdCapture::BeginCapture();
+                this->exec->execute(cmds);
+                StdCapture::EndCapture();
+                std::string output = StdCapture::GetCapture();
                 etree.setInnerCommandResult(proc_unit, output);
             }
             auto proc_unit = etree.getNextUnit();

@@ -43,6 +43,18 @@ inline bool startswith(const std::string &str, const std::string &prefix)
     return str.rfind(prefix) == 0;
 }
 
+inline bool endswith(const std::string &str, const std::string &ending)
+{
+    if (str.length() > ending.length())
+    {
+        return str.compare(str.length() - ending.length(), ending.length(), ending) == 0;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 inline char* substr(const char *str, std::size_t start_pos, std::size_t length)
 {
     char *substr = new char[length + 1];
@@ -95,6 +107,28 @@ inline std::string join(const std::vector<std::string> &strs, const std::string 
         ss << between << strs[i];
     }
     return ss.str();
+}
+
+inline bool remove_eol(std::string &str)
+{
+    const std::vector<std::string> crlf = {"\n", "\r"};
+    size_t k = 0, cut_size = 0;
+    bool positive_loop, has_changed = false;
+    do
+    {
+        positive_loop = false;
+        for (const std::string &eol : crlf)
+        {
+            int ds = eol.length();
+            if (endswith(str, eol))
+            {
+                str = str.substr(0, str.length() - eol.length());
+                has_changed = positive_loop = true;
+                break;
+            }
+        }
+    } while (positive_loop);
+    return has_changed;
 }
 
 } // namespace bashkir::util

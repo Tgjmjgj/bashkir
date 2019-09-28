@@ -23,6 +23,7 @@
 #include <sys/wait.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <assert.h>
 
 // C++17
 #include <experimental/filesystem>

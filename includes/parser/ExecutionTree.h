@@ -1,7 +1,7 @@
 #pragma once
-
-#include <string>
-#include <memory>
+#include "deps.h"
+// #include <string>
+// #include <memory>
 
 namespace bashkir 
 {
@@ -16,26 +16,8 @@ public:
 public:
     ParseUnit() = default;
     ParseUnit(ParseUnit&) = default;
-    bool isFinal() const;
     bool operator==(const ParseUnit &pu) const;
     bool operator!=(const ParseUnit &pu) const;
-};
-
-class ParseUnitIterator
-{
-private:
-    std::shared_ptr<ParseUnit> start_point;
-    std::shared_ptr<ParseUnit> current_pu;
-    std::unique_ptr<ParseUnit> pu_copy;
-    bool end = false;
-public:
-    ParseUnitIterator(std::shared_ptr<ParseUnit> start_p);
-    std::shared_ptr<ParseUnit> operator*() const;
-    void operator++();
-    bool operator ==(const ParseUnitIterator &it) const;
-    bool operator !=(const ParseUnitIterator &it) const;
-private:
-    std::shared_ptr<ParseUnit> getCurrentParseUnit() const;
 };
 
 class ExecutionTree
@@ -48,11 +30,6 @@ public:
     bool isCompletedCommand() const;
     std::shared_ptr<ParseUnit> getNextUnit() const;
     bool setInnerCommandResult(std::shared_ptr<ParseUnit> &target, const std::string &result);
-
-    ParseUnitIterator begin();
-    const ParseUnitIterator begin() const;
-    ParseUnitIterator end();
-    const ParseUnitIterator end() const;
 };
 
 } // namespace bashkir

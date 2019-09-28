@@ -1,4 +1,4 @@
-#include "assert.h"
+// #include <assert.h>
 #include "parser/ExecutionTree.h"
 
 namespace bashkir
@@ -111,11 +111,6 @@ bool ExecutionTree::setInnerCommandResult(std::shared_ptr<ParseUnit> &target, co
     return true;
 }
 
-bool ParseUnit::isFinal() const
-{
-    return this->level == 0 && this->prev == nullptr && this->next == nullptr;
-}
-
 bool ParseUnit::operator==(const ParseUnit &pu) const
 {
     return (
@@ -129,66 +124,6 @@ bool ParseUnit::operator==(const ParseUnit &pu) const
 bool ParseUnit::operator!=(const ParseUnit &pu) const
 {
     return !(*this == pu);
-}
-
-ParseUnitIterator ExecutionTree::begin()
-{
-    return ParseUnitIterator(this->start_point);
-}
-
-const ParseUnitIterator ExecutionTree::begin() const
-{
-    return ParseUnitIterator(this->start_point);
-}
-
-ParseUnitIterator ExecutionTree::end()
-{
-    return ParseUnitIterator(nullptr);
-}
-
-const ParseUnitIterator ExecutionTree::end() const
-{
-    return ParseUnitIterator(nullptr);
-}
-
-std::shared_ptr<ParseUnit> ParseUnitIterator::getCurrentParseUnit() const
-{
-    std::shared_ptr<ParseUnit> pu = this->start_point;
-    while (pu != nullptr && pu->next != nullptr && pu->next->level > pu->level)
-    {
-        pu = pu->next;
-    }
-    return pu;
-}
-
-ParseUnitIterator::ParseUnitIterator(std::shared_ptr<ParseUnit> start_p) : start_point(std::move(start_p))
-{
-    this->current_pu = this->getCurrentParseUnit();
-    this->pu_copy = this->current_pu == nullptr ? nullptr : std::make_unique<ParseUnit>(*(this->current_pu));
-}
-
-std::shared_ptr<ParseUnit> ParseUnitIterator::operator*() const
-{
-    return this->current_pu;
-}
-
-void ParseUnitIterator::operator++()
-{
-    this->current_pu = this->getCurrentParseUnit();
-    if (this->current_pu != nullptr && *(this->current_pu) == *(this->pu_copy))
-    {
-        this->current_pu = nullptr;
-    }
-}
-
-bool ParseUnitIterator::operator==(const ParseUnitIterator &it) const
-{
-    return this->current_pu == it.current_pu;
-}
-
-bool ParseUnitIterator::operator!=(const ParseUnitIterator &it) const
-{
-    return this->current_pu != it.current_pu;
 }
 
 } // namespace bashkir
