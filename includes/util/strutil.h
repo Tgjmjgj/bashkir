@@ -1,10 +1,12 @@
 #pragma once
 #include "deps.h"
 // #include <algorithm>
+// #include <numeric>
 // #include <vector>
 // #include <string>
 // #include <sstream>
 // #include <string.h>
+#include "input/InputHandler.h"
 
 namespace bashkir::util
 {
@@ -55,12 +57,22 @@ inline bool endswith(const std::string &str, const std::string &ending)
     }
 }
 
-inline char* substr(const char *str, std::size_t start_pos, std::size_t length)
+inline std::unique_ptr<char[]> substr(const char *str, size_t start_pos, size_t length)
 {
-    char *substr = new char[length + 1];
-    memcpy(substr, &str[start_pos], length);
+    std::unique_ptr<char[]> substr = std::make_unique<char[]>(length + 1);
+    memcpy(substr.get(), &str[start_pos], length);
     substr[length] = '\0';
     return substr;
+}
+
+inline std::string substr(const std::string &str, size_t start_pos, size_t length)
+{
+    return str.substr(start_pos, length);
+}
+
+inline std::string substr(const std::string &str, size_t start_pos)
+{
+    return str.substr(start_pos, str.length() - start_pos);
 }
 
 inline std::vector<std::string> split(const std::string &base, const char delim)
@@ -90,21 +102,46 @@ inline std::tuple<std::string, std::string> splitInHalf(const std::string &base,
     }
 }
 
+inline std::tuple<std::string, std::string> splitInHalf(const std::string &base, size_t pos)
+{
+    if (pos > base.length())
+    {
+        throw std::invalid_argument("Splitting position greater than string length");
+    }
+    else
+    {
+        std::string part_1 = base.substr(0, pos);
+        std::string part_2 = pos < base.length() ? base.substr(pos) : "";
+        return std::make_tuple(part_1, part_2);
+    }
+}
+
 inline std::string join(const std::vector<std::string> &strs, const std::string &between)
 {
     if (strs.size() == 0)
     {
         return "";
     }
-    else if (strs.size() == 1)
-    {
-        return strs[0];
-    }
     std::stringstream ss;
     ss << strs[0];
     for (std::size_t i = 1; i < strs.size(); ++i)
     {
         ss << between << strs[i];
+    }
+    return ss.str();
+}
+
+inline std::string join(const std::vector<Line> &strs, const char *between)
+{
+    if (strs.size() == 0)
+    {
+        return "";
+    }
+    std::stringstream ss;
+    ss << strs[0].data;
+    for (std::size_t i = 1; i < strs.size(); ++i)
+    {
+        ss << between << strs[i].data;
     }
     return ss.str();
 }
@@ -119,7 +156,6 @@ inline bool remove_eol(std::string &str)
         positive_loop = false;
         for (const std::string &eol : crlf)
         {
-            int ds = eol.length();
             if (endswith(str, eol))
             {
                 str = str.substr(0, str.length() - eol.length());

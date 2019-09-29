@@ -129,7 +129,7 @@ int Shell::run()
     {
         try
         {
-            this->writePrefix();
+            this->input->writePrefix();
             const std::string inputStr = this->input->waitInput();
             ExecutionTree etree;
             etree.buildTree(inputStr);
@@ -164,13 +164,6 @@ int Shell::run()
         }
     }
     return 0;
-}
-
-void Shell::writePrefix() const
-{
-    std::string cPath = fs::current_path().c_str();
-    util::fullToHomeRel(cPath);
-    io.write("paradox> " + cPath + " $ ");
 }
 
 } // namespace bashkir
