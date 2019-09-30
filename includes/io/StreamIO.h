@@ -20,6 +20,7 @@ public:
     void error(const std::string &err_msg) const;
     std::string readStr() const;
     char readChar() const;
+    void flush() const;
 };
 
 } // namespace bashkir

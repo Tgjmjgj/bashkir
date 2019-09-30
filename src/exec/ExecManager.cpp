@@ -90,12 +90,12 @@ int ExecManager::execute(std::vector<Command> cmds)
         {
             if (!term_reset)
             {
-                global::classicTermSettings();
+                global::resetOriginalTermSettings();
                 term_reset = true;
             }
             Executor exec(in, out, err, pipes);
             subprocs.push_back(exec);
-            exec.execute(cmds[i]);
+            int exit_code = exec.execute(cmds[i]);
             exec.waitSubproc();
         }
         i += step;
@@ -114,7 +114,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     }
     if (term_reset)
     {
-        global::bashkirTermSettings();
+        global::setBashkirTermSettings();
     }
     return 0;
 }

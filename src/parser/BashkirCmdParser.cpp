@@ -15,10 +15,14 @@ BashkirCmdParser::BashkirCmdParser(std::shared_ptr<std::vector<std::string>> his
 
 std::vector<Command> BashkirCmdParser::parse(const std::string &input_str)
 {
+    std::vector<Command> cmds = std::vector<Command>();
+    if (input_str.length() == 0)
+    {
+        return cmds;
+    }
     if (hist->size() == 0 || (hist->size() != 0 && hist->at(hist->size() - 1) != input_str)) {
         hist->push_back(input_str);
     }
-    std::vector<Command> cmds = std::vector<Command>();
     auto items = iterate_items(input_str);
     Command cmd;
     bool before_first_cmd = true;

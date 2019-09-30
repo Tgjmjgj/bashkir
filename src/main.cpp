@@ -3,5 +3,5 @@
 int main(int argc, char *argv[])
 {
     bashkir::Shell bashkir;
-    bashkir.run();
+    return bashkir.run();
 }

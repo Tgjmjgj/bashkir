@@ -54,4 +54,9 @@ char NcursesIO::readChar() const
     return 'S';
 }
 
+void NcursesIO::flush() const
+{
+    return;
+}
+
 } // namespace bashkir

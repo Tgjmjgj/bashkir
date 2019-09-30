@@ -4,6 +4,7 @@
 // #include <string.h>
 #include "exec/Executor.h"
 #include "util/convutil.h"
+#include "exceptions/ExitException.h"
 #include "global.h"
 
 namespace bashkir
@@ -27,6 +28,8 @@ int Executor::execute(const Command &cmd)
     }
     else // child process
     {
+        // We need do this explicitly, because SIGINT is disabled in the main parent process
+        signal(SIGINT, global::allowCtrlC);
         if (this->out != STDOUT_FILENO)
         {
             dup2(this->out, STDOUT_FILENO);
@@ -57,7 +60,8 @@ int Executor::execute(const Command &cmd)
                 break;
             }
         }
-        exit(err_code);
+        throw exc::ExitException(err_code);
+        return 1;
     }
 }
 

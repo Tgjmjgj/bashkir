@@ -42,7 +42,7 @@ void StreamIO::formatStr(const std::string &fmt_str, ...) const
 
 void StreamIO::error(const std::string &err_msg) const
 {
-    std::cerr << err_msg;
+    std::cerr << err_msg << '\n';
 }
 
 std::string StreamIO::readStr() const
@@ -54,7 +54,12 @@ std::string StreamIO::readStr() const
 
 char StreamIO::readChar() const
 {
-    return  static_cast<char>(std::getchar());
+    return static_cast<char>(std::getchar());
+}
+
+void StreamIO::flush() const
+{
+    std::cout.flush();
 }
 
 } // namespace bashkir

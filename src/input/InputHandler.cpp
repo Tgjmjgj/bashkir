@@ -82,6 +82,7 @@ std::string InputHandler::waitInput()
     {
         memset(this->tmp_buf, 0, sizeof(this->tmp_buf));
         read(STDIN_FILENO, &this->tmp_buf, sizeof(this->tmp_buf));
+        log::to->Info(this->tmp_buf);
         std::size_t rlen = strlen(this->tmp_buf);
         for (std::size_t i = 0; i < rlen;)
         {
@@ -266,21 +267,21 @@ void InputHandler::pressSimpleKey(char ch)
 void InputHandler::writeChars(const std::string &chars)
 {
     Line &line = this->input[this->cur_pos.line];
-    std::size_t subs_len = line.real_length - this->cur_pos.pos;
+    const std::size_t subs_len = line.real_length - this->cur_pos.pos;
     std::string last_part = util::substr(std::string(line.data), this->cur_pos.pos, subs_len);
     io.write(chars);
     io.write(last_part);
-    this->cur_pos.pos += chars.length();
-    line.real_length += chars.length();
     io.write(std::string(subs_len, '\b'));
-    for (std::size_t i = subs_len + 1; i != 0; --i)
+    for (std::size_t i = 0; i < subs_len; ++i)
     {
-        line.data[this->cur_pos.pos + i - 1] = line.data[this->cur_pos.pos + i - 2];
+        line.data[line.real_length + chars.length() - i] = line.data[line.real_length - i];
     }
     for (std::size_t i = 0; i < chars.length(); ++i)
     {
-        line.data[this->cur_pos.pos - chars.length() + i] = chars[i];
+        line.data[this->cur_pos.pos + i] = chars[i];
     }
+    this->cur_pos.pos += chars.length();
+    line.real_length += chars.length();
     assert(line.real_length == strlen(line.data));
 }
 

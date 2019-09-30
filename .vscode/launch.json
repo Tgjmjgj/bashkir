@@ -3,9 +3,9 @@
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
-    "configurations": [        
+    "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Launch parent",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/run",
@@ -23,6 +23,29 @@
                 },
                 {
                     "text": "-gdb-set follow-fork-mode parent",
+                    "ignoreFailures": true,
+                },
+            ]
+        },
+        {
+            "name": "(gdb) Launch child",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/run",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true,
+                },
+                {
+                    "text": "-gdb-set follow-fork-mode child",
                     "ignoreFailures": true,
                 },
             ]

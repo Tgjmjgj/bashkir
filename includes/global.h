@@ -33,24 +33,33 @@ namespace global
 {
 
 inline bool restore_term_atexit = true;
-inline termios settings_classic;
-inline termios settings_bashkir;
+inline termios settings_original, settings_bashkir;
 
-inline bool bashkirTermSettings()
+inline bool setBashkirTermSettings()
 {
-    return tcsetattr(0, TCSANOW, &settings_bashkir) >= 0;
+    bool ret_code = tcsetattr(0, TCSANOW, &settings_bashkir) >= 0;
+    if (!ret_code)
+    {
+        io.error("Error with setting new settings of terminal.");
+    }
+    return ret_code;
 }
 
-inline bool classicTermSettings()
+inline bool resetOriginalTermSettings()
 {
-    return tcsetattr(0, TCSANOW, &settings_classic) >= 0;
+    bool ret_code = tcsetattr(0, TCSANOW, &settings_original) >= 0;
+    if (!ret_code)
+    {
+        io.error("Error with resetting original settings of the terminal.");
+    }
+    return ret_code;
 }
 
 inline void atexit()
 {
     if (restore_term_atexit)
     {
-        classicTermSettings();
+        resetOriginalTermSettings();
     }
 }
 
@@ -59,9 +68,12 @@ inline void antiZombie(int signum)
     wait(NULL);
 }
 
-inline void disableCtrlC(int signum)
+inline void allowCtrlC(int signum)
 {
-    NULL;
+    io.write('\n');
+    signal(SIGINT, SIG_DFL);
+    raise(SIGINT);
+    return;
 }
 
 inline uint8_t bad_alloc_chain = 0;

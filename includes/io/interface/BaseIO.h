@@ -17,6 +17,7 @@ public:
     virtual void error(const std::string &err_msg) const = 0;
     virtual std::string readStr() const = 0;
     virtual char readChar() const = 0;
+    virtual void flush() const = 0;
 };
 
 } // namespace bashkir

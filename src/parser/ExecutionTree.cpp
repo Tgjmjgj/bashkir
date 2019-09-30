@@ -9,10 +9,6 @@ const std::string inner_cmd_end = ")";
 
 bool ExecutionTree::buildTree(const std::string &input)
 {
-    if (input.length() == 0)
-    {
-        return false;
-    }
     std::shared_ptr<ParseUnit> pu = std::make_shared<ParseUnit>();
     pu->level = 0;
     pu->prev = nullptr;

@@ -29,8 +29,9 @@ public:
 
 private:
     void init();
+    void changeTerminalSettings();
     void loadBuiltins();
-    void signalHandlers();
+    void registerSignalHandlers();
     void configureLogger();
     std::string waitInput() const;
 };
