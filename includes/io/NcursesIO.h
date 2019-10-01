@@ -17,7 +17,9 @@ public:
     ~NcursesIO() {};
     void write(const std::string &str) const;
     void write(const char ch) const;
+    void write(int num) const;
     void writeStr(const std::string &str) const;
+    void writeStr(int num) const;
     void format(const std::string &fmt_str, ...) const;
     void formatStr(const std::string &fmt_str, ...) const;
     void error(const std::string &err_msg) const;

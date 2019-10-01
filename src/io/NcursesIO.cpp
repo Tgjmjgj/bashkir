@@ -18,9 +18,19 @@ void NcursesIO::write(const char ch) const
     this->nc->writeChar(ch);
 }
 
+void NcursesIO::write(int num) const
+{
+    this->nc->write("stub");
+}
+
 void NcursesIO::writeStr(const std::string &str) const
 {
     this->nc->writeStr(str);
+}
+
+void NcursesIO::writeStr(int num) const
+{
+    this->nc->writeStr("stub");
 }
 
 void NcursesIO::format(const std::string &fmt_str, ...) const

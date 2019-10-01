@@ -18,9 +18,19 @@ void StreamIO::write(const char ch) const
     std::cout << ch;
 }
 
+void StreamIO::write(int num) const
+{
+    std::cout << num;
+}
+
 void StreamIO::writeStr(const std::string &str) const
 {
     std::cout << str << '\n';
+}
+
+void StreamIO::writeStr(int num) const
+{
+    std::cout << num << '\n';
 }
 
 void StreamIO::format(const std::string &fmt_str, ...) const

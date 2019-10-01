@@ -95,14 +95,19 @@ int ExecManager::execute(std::vector<Command> cmds)
             }
             Executor exec(in, out, err, pipes);
             subprocs.push_back(exec);
-            int exit_code = exec.execute(cmds[i]);
-            exec.waitSubproc();
+            exec.execute(cmds[i]);
+            // wait(NULL);
+            // exec.waitSubproc();
         }
         i += step;
     }
     for (int pipe_id : pipes)
     {
         close(pipe_id);
+    }
+    for (Executor &child : subprocs)
+    {
+        wait(NULL);
     }
     for (FilesRedirect &redir : mul_files)
     {
@@ -166,7 +171,7 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
         }
         log::to->Info("All ok. It reachs the end.");
         close(redir.pipe_in);
-        global::restore_term_atexit = false;
+        // global::restore_term_atexit = false;
         exit(0);
     }
 }

@@ -32,13 +32,19 @@ inline bool Lev3() {
 namespace global
 {
 
-inline bool restore_term_atexit = true;
+// inline bool restore_term_atexit = true;
 inline termios settings_original, settings_bashkir;
+inline bool is_bashkir_term_mode = false;
 
 inline bool setBashkirTermSettings()
 {
     bool ret_code = tcsetattr(0, TCSANOW, &settings_bashkir) >= 0;
-    if (!ret_code)
+    if (ret_code)
+    {
+        is_bashkir_term_mode = true;
+        io.writeStr("Bashkir mode");
+    }
+    else
     {
         io.error("Error with setting new settings of terminal.");
     }
@@ -48,7 +54,12 @@ inline bool setBashkirTermSettings()
 inline bool resetOriginalTermSettings()
 {
     bool ret_code = tcsetattr(0, TCSANOW, &settings_original) >= 0;
-    if (!ret_code)
+    if (ret_code)
+    {
+        is_bashkir_term_mode = false;
+        io.writeStr("Default mode");
+    }
+    else
     {
         io.error("Error with resetting original settings of the terminal.");
     }
@@ -57,7 +68,7 @@ inline bool resetOriginalTermSettings()
 
 inline void atexit()
 {
-    if (restore_term_atexit)
+    if (is_bashkir_term_mode)
     {
         resetOriginalTermSettings();
     }
@@ -66,14 +77,6 @@ inline void atexit()
 inline void antiZombie(int signum)
 {
     wait(NULL);
-}
-
-inline void allowCtrlC(int signum)
-{
-    io.write('\n');
-    signal(SIGINT, SIG_DFL);
-    raise(SIGINT);
-    return;
 }
 
 inline uint8_t bad_alloc_chain = 0;

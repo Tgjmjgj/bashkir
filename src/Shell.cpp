@@ -168,7 +168,7 @@ int Shell::run()
                 log::to->Err("The memory allocation problem occured 3 times in a row.");
                 return 1;
             }
-            ++global::bad_alloc_chain;
+            global::bad_alloc_chain++;
         }
         catch (const exc::ExitException &e)
         {

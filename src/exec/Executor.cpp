@@ -17,19 +17,19 @@ int Executor::execute(const Command &cmd)
 {
     if (log::Lev2()) log::to->Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
     const __pid_t child_id = fork();
+    this->pid = child_id;
     if (child_id) // parent process
     {
         if (child_id == -1)
         {
             io.writeStr("Something get wrongs!");
         }
-        this->pid = child_id;
         return child_id;
     }
     else // child process
     {
         // We need do this explicitly, because SIGINT is disabled in the main parent process
-        signal(SIGINT, global::allowCtrlC);
+        signal(SIGINT, SIG_DFL);
         if (this->out != STDOUT_FILENO)
         {
             dup2(this->out, STDOUT_FILENO);
@@ -67,7 +67,17 @@ int Executor::execute(const Command &cmd)
 
 void Executor::waitSubproc() const
 {
-    wait(NULL);
+    siginfo_t siginfo;
+    waitid(P_PID, this->pid, &siginfo, WEXITED | WSTOPPED);
+    if (siginfo.si_code == CLD_KILLED && siginfo.si_status == SIGINT)
+    {
+        io.write('\n');
+    }
+}
+
+__pid_t Executor::getChildPid() const noexcept
+{
+    return this->pid;
 }
 
 } // namespace bashkir

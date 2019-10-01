@@ -16,12 +16,13 @@ private:
     int err;
     std::vector<int> all_pipes;
 
-    int pid;
+    __pid_t pid;
     
 public:
 
     Executor(int in=STDIN_FILENO, int out=STDOUT_FILENO, int err=STDERR_FILENO, const std::vector<int> &pp = {});
     int execute(const Command &cmd);
+    __pid_t getChildPid() const noexcept;
     void waitSubproc() const;
 };
 
