@@ -1,8 +1,8 @@
 // #include <unistd.h>
-// #include <sys/wait.h>
 // #include <fstream>
 #include "exec/ExecManager.h"
 #include "exec/Executor.h"
+#include "util/timeutil.h"
 #include "global.h"
 
 namespace bashkir
@@ -16,7 +16,7 @@ int ExecManager::execute(std::vector<Command> cmds)
     std::vector<int> pipes, file_pipes;
     std::vector<Executor> subprocs;
     int next_in = STDIN_FILENO;
-    if (log::Lev2()) log::to->Info("RUN COMMANDS:");
+    if (log::Lev2()) log::to.Info("RUN COMMANDS:");
     std::vector<FilesRedirect> mul_files;
     bool term_reset = false;
     for (std::size_t i = 0; i < cmds.size();)
@@ -57,7 +57,7 @@ int ExecManager::execute(std::vector<Command> cmds)
                 if (fd == 0) {
                     std::string msg = "Cannot open file '" + redir.files[0].filename + '\'';
                     io.error(msg);
-                    log::to->Warn(msg);
+                    log::to.Warn(msg);
                 }
                 file_pipes.push_back(fd);
                 pipes.push_back(fd);
@@ -95,19 +95,16 @@ int ExecManager::execute(std::vector<Command> cmds)
             }
             Executor exec(in, out, err, pipes);
             subprocs.push_back(exec);
-            exec.execute(cmds[i]);
-            // wait(NULL);
-            // exec.waitSubproc();
+            util::benchmark([&exec, &cmds, &i]() {
+                exec.execute(cmds[i]);
+                exec.waitSubproc();
+            }, util::BenchDest::LOG);
         }
         i += step;
     }
     for (int pipe_id : pipes)
     {
         close(pipe_id);
-    }
-    for (Executor &child : subprocs)
-    {
-        wait(NULL);
     }
     for (FilesRedirect &redir : mul_files)
     {
@@ -133,7 +130,6 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
     }
     else if (child_id == 0) // child process
     {
-        log::to->Info("Start a child process with id " + std::to_string(child_id));
         for (const int pipe : all_file_pipes)
         {
             if (pipe != redir.pipe_in)
@@ -156,7 +152,6 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
             }
         }
         char buf;
-        log::to->Info("Write to file:");
         while (read(redir.pipe_in, &buf, sizeof(buf)) > 0)
         {
             for (std::ofstream *filestream : files)
@@ -169,9 +164,7 @@ void ExecManager::writeToFilesInSubprocess(const FilesRedirect &redir, std::vect
             (*filestream).close();
             delete filestream;
         }
-        log::to->Info("All ok. It reachs the end.");
         close(redir.pipe_in);
-        // global::restore_term_atexit = false;
         exit(0);
     }
 }

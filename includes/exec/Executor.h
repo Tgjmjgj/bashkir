@@ -24,6 +24,8 @@ public:
     int execute(const Command &cmd);
     __pid_t getChildPid() const noexcept;
     void waitSubproc() const;
+private:
+    void evilHack() const;
 };
 
 } // namespace bashkir

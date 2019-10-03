@@ -20,6 +20,8 @@
 #include "logger/SpdFileLogger.h"
 #include "exceptions/ExitException.h"
 
+#include "logger/StdioLogger.h"
+
 namespace fs = std::experimental::filesystem;
 
 namespace bashkir
@@ -32,7 +34,7 @@ Shell::Shell()
 
 Shell::~Shell()
 {
-    log::to->Flush();
+    log::to.Flush();
 }
 
 void Shell::init()
@@ -130,13 +132,12 @@ void Shell::registerSignalHandlers()
 
 void Shell::configureLogger()
 {
-    log::to = std::make_unique<SpdFileLogger>();
-    spdlog::flush_every(std::chrono::seconds(5));
-    log::log_level = 2;
+    log::log_level = 0;
 }
 
 int Shell::run()
 {
+    uint8_t bad_alloc_chain = 0;
     while (true)
     {
         try
@@ -158,17 +159,17 @@ int Shell::run()
             auto proc_unit = etree.getNextUnit();
             std::vector<Command> cmds = this->parser->parse(proc_unit->value);
             this->exec->execute(cmds);
-            global::bad_alloc_chain = 0;
+            bad_alloc_chain = 0;
         }
         catch (const std::bad_alloc &e)
         {
-            log::to->Err(e.what());
-            if (global::bad_alloc_chain > 2) 
+            log::to.Err(e.what());
+            if (bad_alloc_chain > 2) 
             {
-                log::to->Err("The memory allocation problem occured 3 times in a row.");
+                log::to.Err("The memory allocation problem occured 3 times in a row.");
                 return 1;
             }
-            global::bad_alloc_chain++;
+            ++bad_alloc_chain;
         }
         catch (const exc::ExitException &e)
         {
@@ -176,7 +177,7 @@ int Shell::run()
         }
         catch (const std::exception &e)
         {
-            log::to->Err(e.what());
+            log::to.Err(e.what());
         }
     }
     return 0;

@@ -82,7 +82,6 @@ std::string InputHandler::waitInput()
     {
         memset(this->tmp_buf, 0, sizeof(this->tmp_buf));
         read(STDIN_FILENO, &this->tmp_buf, sizeof(this->tmp_buf));
-        log::to->Info(this->tmp_buf);
         std::size_t rlen = strlen(this->tmp_buf);
         for (std::size_t i = 0; i < rlen;)
         {
@@ -106,7 +105,7 @@ std::string InputHandler::waitInput()
                         {
                             found_csi = true;
                             this->escaped_next = false;
-                            if (log::Lev3()) log::to->Info(csi);
+                            if (log::Lev3()) log::to.Info(csi);
                             this->pressCSIsequence(csi);
                             i += csi.length();
                             break;
@@ -116,7 +115,7 @@ std::string InputHandler::waitInput()
             }
             if (!found_csi)
             {
-                if (log::Lev3()) log::to->Info(this->tmp_buf[i]);
+                if (log::Lev3()) log::to.Info(this->tmp_buf[i]);
                 this->pressSimpleKey(this->tmp_buf[i]);
                 this->escaped_next = (this->tmp_buf[i] == '\\');
                 ++i;

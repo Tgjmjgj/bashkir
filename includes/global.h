@@ -3,7 +3,7 @@
 // #include <memory>
 // #include <termios.h>
 // #include <sys/wait.h>
-#include "logger/interface/BaseLogger.h"
+#include "logger/SpdFileLogger.h"
 #include "io/StreamIO.h"
 
 namespace bashkir
@@ -15,7 +15,7 @@ namespace log
 {
 
 inline uint8_t log_level = 0;
-inline std::unique_ptr<BaseLogger> to;
+inline SpdFileLogger to;
 
 inline bool Lev1() {
     return log_level > 0;
@@ -42,7 +42,7 @@ inline bool setBashkirTermSettings()
     if (ret_code)
     {
         is_bashkir_term_mode = true;
-        io.writeStr("Bashkir mode");
+        // io.writeStr("Bashkir mode");
     }
     else
     {
@@ -57,7 +57,7 @@ inline bool resetOriginalTermSettings()
     if (ret_code)
     {
         is_bashkir_term_mode = false;
-        io.writeStr("Default mode");
+        // io.writeStr("Default mode");
     }
     else
     {
@@ -78,8 +78,6 @@ inline void antiZombie(int signum)
 {
     wait(NULL);
 }
-
-inline uint8_t bad_alloc_chain = 0;
 
 } // namespace bashkir::global
 

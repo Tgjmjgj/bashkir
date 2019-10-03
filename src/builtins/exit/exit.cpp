@@ -6,7 +6,7 @@ namespace bashkir::builtins
 
 int Exit::exec(const Command &cmd)
 {
-    log::to->Info("Exit attempt!");
+    log::to.Info("Exit attempt!");
     exit(0);
     return 0;
 }

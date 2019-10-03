@@ -15,7 +15,7 @@ Executor::Executor(int i, int o, int e, const std::vector<int> &pp)
 
 int Executor::execute(const Command &cmd)
 {
-    if (log::Lev2()) log::to->Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
+    // if (log::Lev2()) log::to.Info("  [" + std::to_string(this->in) + "]=======> " + cmd.exe + " =======>[" + std::to_string(this->out) + "]");
     const __pid_t child_id = fork();
     this->pid = child_id;
     if (child_id) // parent process
@@ -59,6 +59,7 @@ int Executor::execute(const Command &cmd)
                 io.writeStr(cmd.exe + " return error code " + std::to_string(errno) + ": " + std::strerror(errno));
                 break;
             }
+            this->evilHack();
         }
         throw exc::ExitException(err_code);
         return 1;
@@ -78,6 +79,18 @@ void Executor::waitSubproc() const
 __pid_t Executor::getChildPid() const noexcept
 {
     return this->pid;
+}
+
+// Execute random (in this case, echo) program and finish it
+// in 40-60(!) times faster, than exiting current programm
+// I don't understand why, but it is
+void Executor::evilHack() const
+{
+    char *const *args = util::createExecArgs("echo", std::vector<std::string>());
+    int nulld = open("/dev/null", O_WRONLY | O_CREAT, 0666);
+    dup2(nulld, 1);   
+    execvp("echo", args);
+    close(nulld);
 }
 
 } // namespace bashkir
