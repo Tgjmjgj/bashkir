@@ -3,6 +3,7 @@
 // #include <memory>
 // #include <vector>
 // #include <string>
+// #include <optional>
 
 namespace bashkir
 {
@@ -45,12 +46,18 @@ public:
     void writePrefix();
     std::string waitInput();
 private:
+    std::optional<std::string> lookForCSISequenceInPos(size_t pos);
     void pressCSIsequence(std::string csi_seq);
     void pressSimpleKey(char ch);
     void writeChars(const std::string &chars);
     void setHistoryItem();
     void addNewInputLine();
-    void removeInputLine();
+    bool removeInputLine();
+
+    bool moveCursorLeft();
+    bool moveCursorRight();
+    bool removeFromLeft();
+    bool removeFromRight();
 };
 
 } // namespace bashkir
