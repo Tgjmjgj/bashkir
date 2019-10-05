@@ -8,19 +8,27 @@
 namespace bashkir
 {
 
-struct Pos
+class Pos
 {
+public:
     size_t line;
     size_t pos;
+    size_t mem_pos;
+
+    void Set(size_t new_pos) noexcept;
 };
 
 inline const size_t max_line_length = 2048;
-inline const size_t input_buffer_size = 10;
+inline const size_t input_buffer_size = 16;
+inline const std::string new_line_prefix = "> ";
 
-struct Line
+class Line
 {
+public:
     char data[max_line_length];
     size_t real_length = 0;
+    std::string prefix = new_line_prefix;
+
     Line();
     Line(const std::string &init);
 };
@@ -32,8 +40,6 @@ private:
     
     const std::shared_ptr<std::vector<std::string>> hist;
 
-    std::string first_line_prefix;
-
     std::vector<Line> input;
     Pos cur_pos;
     std::size_t hist_ind;
@@ -43,9 +49,9 @@ private:
 
 public:
     InputHandler(std::shared_ptr<std::vector<std::string>> history);
-    void writePrefix();
     std::string waitInput();
 private:
+    void writePrefix();
     std::optional<std::string> lookForCSISequenceInPos(size_t pos);
     void pressCSIsequence(std::string csi_seq);
     void pressSimpleKey(char ch);
@@ -56,6 +62,9 @@ private:
 
     bool moveCursorLeft();
     bool moveCursorRight();
+    bool moveCursorUp();
+    bool moveCursorDown();
+    void moveCursorVertically(size_t from, size_t to);
     bool removeFromLeft();
     bool removeFromRight();
 };

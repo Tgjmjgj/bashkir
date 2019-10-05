@@ -11,8 +11,8 @@ private:
     enum PIPES { READ, WRITE };
 
     static int m_pipe[2];
-    static int m_oldStdOut;
-    static int m_oldStdErr;
+    static int m_old_stdout;
+    static int m_old_stderr;
     static bool m_capturing;
     static std::mutex m_mutex;
     static std::string m_captured;

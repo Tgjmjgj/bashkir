@@ -29,8 +29,9 @@ inline bool benchmark(Action fn, BenchDest dest = BenchDest::LOG)
         io.writeStr(str);
         break;
     default:
-        break;
+        return false;
     }
+    return true;
 }
 
 } // namespace bashkir::util

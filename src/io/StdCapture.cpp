@@ -27,8 +27,8 @@ namespace bashkir
 {
 
 int StdCapture::m_pipe[2];
-int StdCapture::m_oldStdOut;
-int StdCapture::m_oldStdErr;
+int StdCapture::m_old_stdout;
+int StdCapture::m_old_stderr;
 bool StdCapture::m_capturing;
 std::mutex StdCapture::m_mutex;
 std::string StdCapture::m_captured;
@@ -41,8 +41,8 @@ void StdCapture::BeginCapture()
         return;
     }
     SecurePipe(m_pipe);
-    m_oldStdOut = SecureDup(STDOUT_FILENO);
-    m_oldStdErr = SecureDup(STDERR_FILENO);
+    m_old_stdout = SecureDup(STDOUT_FILENO);
+    m_old_stderr = SecureDup(STDERR_FILENO);
     SecureDup2(m_pipe[WRITE], STDOUT_FILENO);
     SecureDup2(m_pipe[WRITE], STDERR_FILENO);
     m_capturing = true;
@@ -65,31 +65,31 @@ bool StdCapture::EndCapture()
         return false;
     }
     m_captured.clear();
-    SecureDup2(m_oldStdOut, STDOUT_FILENO);
-    SecureDup2(m_oldStdErr, STDERR_FILENO);
+    SecureDup2(m_old_stdout, STDOUT_FILENO);
+    SecureDup2(m_old_stderr, STDERR_FILENO);
 
-    const size_t bufSize = 1025;
-    char buf[bufSize];
-    int bytesRead = 0;
+    const size_t buf_size = 1025;
+    char buf[buf_size];
+    int bytes_read = 0;
     bool fd_blocked(false);
     do
     {
-        bytesRead = 0;
+        bytes_read = 0;
         fd_blocked = false;
 #ifdef _MSC_VER
         if (!eof(m_pipe[READ]))
         {
-            bytesRead = read(m_pipe[READ], buf, bufSize - 1);
+            bytes_read = read(m_pipe[READ], buf, buf_size - 1);
         }
 #else
-        bytesRead = read(m_pipe[READ], buf, bufSize - 1);
+        bytes_read = read(m_pipe[READ], buf, buf_size - 1);
 #endif
-        if (bytesRead > 0)
+        if (bytes_read > 0)
         {
-            buf[bytesRead] = 0;
+            buf[bytes_read] = 0;
             m_captured += buf;
         }
-        else if (bytesRead < 0)
+        else if (bytes_read < 0)
         {
             fd_blocked = (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR);
             if (fd_blocked)
@@ -98,15 +98,16 @@ bool StdCapture::EndCapture()
             }
         }
     }
-    while (fd_blocked || bytesRead == (bufSize - 1));
+    while (fd_blocked || bytes_read == (buf_size - 1));
 
-    SecureClose(m_oldStdOut);
-    SecureClose(m_oldStdErr);
+    SecureClose(m_old_stdout);
+    SecureClose(m_old_stderr);
     SecureClose(m_pipe[READ]);
 #ifdef _MSC_VER
     SecureClose(m_pipe[WRITE]);
 #endif
     m_capturing = false;
+    return true;
 }
 
 std::string StdCapture::GetCapture()

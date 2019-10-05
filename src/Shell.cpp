@@ -142,7 +142,6 @@ int Shell::run()
     {
         try
         {
-            this->input->writePrefix();
             const std::string inputStr = this->input->waitInput();
             ExecutionTree etree;
             etree.buildTree(inputStr);
