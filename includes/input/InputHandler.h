@@ -4,6 +4,7 @@
 // #include <vector>
 // #include <string>
 // #include <optional>
+#include "input/BlockConstructions.h"
 
 namespace bashkir
 {
@@ -43,8 +44,7 @@ private:
     std::vector<Line> input;
     Pos cur_pos;
     std::size_t hist_ind;
-    std::stack<std::string> opened_blocks;
-    bool escaped_next = false;
+    std::stack<OpenBlock> opened_blocks;
     bool end = false;
 
 public:
@@ -52,6 +52,14 @@ public:
     std::string waitInput();
 private:
     void writePrefix();
+
+    void detectBlocks();
+    void rebuildBlocksStack();
+
+    bool isPosEscaped(size_t pos) const;
+    bool isPosEscaped(size_t pos, size_t line) const;
+    bool isCurPosEscaped() const;
+
     std::optional<std::string> lookForCSISequenceInPos(size_t pos);
     void pressCSIsequence(std::string csi_seq);
     void pressSimpleKey(char ch);

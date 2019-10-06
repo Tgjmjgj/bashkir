@@ -4,6 +4,7 @@
 // #include <stack>
 // #include <map>
 // #include <experimental/filesystem>
+// #include <algorithm>
 #include "input/InputHandler.h"
 #include "util/strutil.h"
 #include "util/pathutil.h"
@@ -42,13 +43,7 @@ const std::vector<std::string> CSI_seqs = {
     SEQ_DELETE
 };
 
-const std::map<std::string, std::string> blocks = {
-    { "(", ")" },
-    { "{", "}" },
-    { "'", "'" },
-    { "`", "`" },
-    { "\"", "\"" }
-};
+const Blocks blocks;
 
 void Pos::Set(size_t new_pos) noexcept
 {
@@ -87,9 +82,8 @@ std::string InputHandler::waitInput()
     this->cur_pos = {0, 0};
     this->writePrefix();
     this->hist_ind = this->hist->size();
-    this->escaped_next = false;
     this->end = false;
-    this->opened_blocks = std::stack<std::string>();
+    this->opened_blocks = std::stack<OpenBlock>();
     do
     {
         memset(this->tmp_buf, 0, sizeof(this->tmp_buf));
@@ -104,7 +98,6 @@ std::string InputHandler::waitInput()
                 if (csi)
                 {
                     found_csi = true;
-                    this->escaped_next = false;
                     if (log::Lev3()) log::to.Info(*csi);
                     this->pressCSIsequence(*csi);
                     i += csi->length();
@@ -112,9 +105,14 @@ std::string InputHandler::waitInput()
             }
             if (!found_csi)
             {
-                if (log::Lev3()) log::to.Info(this->tmp_buf[i]);
-                this->pressSimpleKey(this->tmp_buf[i]);
-                this->escaped_next = (this->tmp_buf[i] == '\\');
+                char ch = this->tmp_buf[i];
+                if (log::Lev3()) log::to.Info(ch);
+                this->pressSimpleKey(ch);
+                if (this->end)
+                {
+                    break;
+                }
+                this->detectBlocks();
                 ++i;
             }
         }
@@ -122,6 +120,87 @@ std::string InputHandler::waitInput()
     std::string ret = util::join(this->input, "\n");
     this->input.clear();
     return ret;
+}
+
+void InputHandler::rebuildBlocksStack()
+{
+    throw std::logic_error("Not implemented yet!");
+}
+
+void InputHandler::detectBlocks()
+{
+    auto fopn = blocks.searchStartBeforePos(this->input[this->cur_pos.line].data, this->cur_pos.pos);
+    auto fcls = blocks.searchEndBeforePos(this->input[this->cur_pos.line].data, this->cur_pos.pos);
+    if (!fopn && !fcls)
+    {
+        return;
+    }
+    if (this->opened_blocks.empty() && fopn)
+    {
+        if (!this->isPosEscaped(this->cur_pos.pos - fopn->start_seq.length()))
+        {
+            this->opened_blocks.push(OpenBlock(*fopn));
+        }
+    }
+    else // When there are already opened blocks here
+    {
+        OpenBlock last = this->opened_blocks.top();
+        // Check if the user print closing of last-opened block
+        if (fcls && last.block == *fcls && last.escaped == this->isPosEscaped(this->cur_pos.pos - fcls->end_seq.length()))
+        {
+            this->opened_blocks.pop();
+        }
+        else if (fopn) // Check restrictions for opening a nested block
+        {
+            bool esc = this->isPosEscaped(this->cur_pos.pos - fopn->start_seq.length());
+            auto r = last.block.rules; // Following the defined rules
+            if (r.esc == esc && (r.all || std::find(r.allowed.begin(), r.allowed.end(), *fopn) != r.allowed.end()))
+            {
+                this->opened_blocks.push(OpenBlock(*fopn, esc));
+            }
+            // if (last.block.start_seq == "\"" && esc)
+            // {
+            //     // Inside ""-block we can nesting only escaped ``-blocks and $()-blocks
+            //     if (fopn->start_seq == "`" || fopn->start_seq == "$(")
+            //     {
+            //         this->opened_blocks.push(OpenBlock(*fopn, true));
+            //     }
+            // }
+            // if ((last.block.start_seq == "$(" || last.block.start_seq == "{" || last.block.start_seq == "[") && !esc)
+            // {
+            //     this->opened_blocks.push(OpenBlock(*fopn, false));
+            // }
+        }
+    }
+}
+
+bool InputHandler::isPosEscaped(size_t pos) const
+{
+    bool escaped = false;
+    size_t tmp_pos = pos - 1;
+    while (tmp_pos >= 0 && this->input[this->cur_pos.line].data[tmp_pos] == '\\')
+    {
+        escaped = !escaped;
+        --tmp_pos;
+    }
+    return escaped;
+}
+
+bool InputHandler::isPosEscaped(size_t pos, size_t line) const
+{
+    bool escaped = false;
+    size_t tmp_pos = pos - 1;
+    while (tmp_pos >= 0 && this->input[line].data[tmp_pos] == '\\')
+    {
+        escaped = !escaped;
+        --tmp_pos;
+    }
+    return escaped;
+}
+
+bool InputHandler::isCurPosEscaped() const
+{
+    return this->isPosEscaped(this->cur_pos.pos);
 }
 
 std::optional<std::string> InputHandler::lookForCSISequenceInPos(size_t pos)
@@ -197,7 +276,7 @@ void InputHandler::pressSimpleKey(char ch)
     switch (ch)
     {
     case BS_KEY_ENTER:
-        if (this->escaped_next || !this->opened_blocks.empty())
+        if (this->isCurPosEscaped() || !this->opened_blocks.empty())
         {
             this->addNewInputLine();
         }

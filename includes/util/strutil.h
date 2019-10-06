@@ -167,4 +167,22 @@ inline bool remove_eol(std::string &str)
     return has_changed;
 }
 
+inline bool isSubstrBeforePos(const char *fullstr, const char *substr, size_t pos)
+{
+    size_t len_f = strlen(fullstr),
+           len_s = strlen(substr);
+    if (pos > len_f || static_cast<int>(pos) - static_cast<int>(pos - len_s) < 0)
+    {
+        return false;
+    }
+    for (size_t i = 0; i < len_s; ++i)
+    {
+        if (fullstr[pos - len_s + i] != substr[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace bashkir::util

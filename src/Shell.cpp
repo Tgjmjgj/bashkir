@@ -20,8 +20,6 @@
 #include "logger/SpdFileLogger.h"
 #include "exceptions/ExitException.h"
 
-#include "logger/StdioLogger.h"
-
 namespace fs = std::experimental::filesystem;
 
 namespace bashkir
