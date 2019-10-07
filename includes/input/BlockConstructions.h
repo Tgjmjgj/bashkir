@@ -2,8 +2,10 @@
 #include "deps.h"
 // #include <string>
 // #include <vector>
+// #include <stack>
 // #include <optional>
 #include "global.h"
+#include "input/Position.h"
 
 namespace bashkir
 {
@@ -24,17 +26,10 @@ public:
     std::string start_seq;
     std::string end_seq;
     NestingRules rules;
-
+public:
+    BlockInfo& operator=(const BlockInfo &bi);
     bool operator==(const BlockInfo &bi) const;
     bool operator!=(const BlockInfo &bi) const;
-};
-
-class OpenBlock
-{
-public:
-    const BlockInfo block;
-    const bool escaped;
-    OpenBlock(const BlockInfo &block, bool esc = false);
 };
 
 class Blocks
@@ -55,6 +50,43 @@ public:
     iterator end();
     const_iterator begin() const;
     const_iterator end() const;
+};
+
+class OpenBlock
+{
+public:
+    const BlockInfo block;
+    const bool escaped;
+    const size_t uid;
+private:
+    static size_t last_uid;
+public:
+    OpenBlock(const BlockInfo &block, bool esc = false);
+private:
+    size_t getUid() const;
+    static size_t getNewUid();
+};
+
+class BlockPosData
+{
+public:
+    Pos start_pos;
+    const std::string seq;
+    const size_t uid;
+public:
+    BlockPosData();
+    BlockPosData(Pos spos, const std::string &sq, size_t id);
+};
+
+class AllBlocksData
+{
+public:
+    std::stack<OpenBlock> open;
+private:
+    std::vector<BlockPosData> all;
+public:
+    void addOpen(Pos start_pos, const OpenBlock &bl);
+    void addClose(Pos start_pos, const OpenBlock &bl);
 };
 
 } // namespace bashkir
