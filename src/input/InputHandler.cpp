@@ -140,10 +140,11 @@ void InputHandler::detectBlocks(const Pos &inpos)
         size_t seq_start_pos = inpos.pos - fopn->start_seq.length();
         if (!this->isPosEscaped(seq_start_pos))
         {
-            this->blocks.open.push(OpenBlock(*fopn));
+            const Pos start_pos = Pos(inpos.line, seq_start_pos);
+            this->blocks.open.push(OpenBlock(*fopn, start_pos, false));
             const OpenBlock &ref = this->blocks.open.top();
             // *This is crutial to pass into the `addOpen` method the same reference when a block opens and closes
-            this->blocks.addOpen(Pos(inpos.line, seq_start_pos), ref); // *
+            this->blocks.addOpen(start_pos, ref); // *
         }
     }
     else // When there are already opened blocks here
@@ -162,9 +163,10 @@ void InputHandler::detectBlocks(const Pos &inpos)
             auto r = last.block.rules; // Following the defined rules
             if (r.esc == esc && (r.all || std::find(r.allowed.begin(), r.allowed.end(), *fopn) != r.allowed.end()))
             {
-                this->blocks.open.push(OpenBlock(*fopn, esc));
+                const Pos start_pos = Pos(inpos.line, seq_start_pos);
+                this->blocks.open.push(OpenBlock(*fopn, start_pos, esc));
                 const OpenBlock &ref = this->blocks.open.top();
-                this->blocks.addOpen(Pos(inpos.line, seq_start_pos), ref); // *
+                this->blocks.addOpen(start_pos, ref); // *
             }
         }
     }
