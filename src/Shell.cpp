@@ -5,6 +5,7 @@
 // #include <exception>
 #include "Shell.h"
 #include "global.h"
+#include "input/PreParsedInput.h"
 #include "parser/BashkirCmdParser.h"
 #include "parser/ExecutionTree.h"
 #include "io/StdCapture.h"
@@ -140,9 +141,9 @@ int Shell::run()
     {
         try
         {
-            const std::string inputStr = this->input->waitInput();
+            const PreParsedInput inpt = this->input->waitInput();
             ExecutionTree etree;
-            etree.buildTree(inputStr);
+            etree.buildTree(inpt);
             while (!etree.isCompletedCommand())
             {
                 auto proc_unit = etree.getNextUnit();

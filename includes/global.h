@@ -5,6 +5,7 @@
 // #include <sys/wait.h>
 #include "logger/SpdFileLogger.h"
 #include "io/StreamIO.h"
+#include "input/BlockConstructions.h"
 
 namespace bashkir
 {
@@ -31,6 +32,8 @@ inline bool Lev3() {
 
 namespace global
 {
+
+inline const Blocks blocksMeta;
 
 // inline bool restore_term_atexit = true;
 inline termios settings_original, settings_bashkir;

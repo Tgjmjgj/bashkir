@@ -43,10 +43,27 @@ const std::vector<std::string> CSI_seqs = {
     SEQ_DELETE
 };
 
-const Blocks blocksMeta;
-
 InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
     : hist(std::move(history)) {}
+
+PreParsedInput InputHandler::waitInput()
+{
+    this->cur = {0, 0};
+    this->writePrefix();
+    this->hist_ind = this->hist->size();
+    this->end = false;
+    this->blocks = AllBlocksData();
+    this->runInputLoop();
+    const PreParsedInput ret = compressInputData(this->blocks.getFullList(), this->input);
+    this->input.clear();
+    assert(std::accumulate(
+            ret.blocks.begin(),
+            ret.blocks.end(),
+            0,
+            [](int sum, const CompressedBlockData &block) { return sum + (block.is_start ? block.uid : -static_cast<int>(block.uid)); }
+        ) == 0);
+    return ret;
+}
 
 void InputHandler::writePrefix()
 {
@@ -57,13 +74,8 @@ void InputHandler::writePrefix()
     io.write(this->input[0].prefix);
 }
 
-std::string InputHandler::waitInput()
+void InputHandler::runInputLoop()
 {
-    this->cur = {0, 0};
-    this->writePrefix();
-    this->hist_ind = this->hist->size();
-    this->end = false;
-    this->blocks = AllBlocksData();
     do
     {
         memset(this->tmp_buf, 0, sizeof(this->tmp_buf));
@@ -92,59 +104,67 @@ std::string InputHandler::waitInput()
                 {
                     break;
                 }
-                this->detectBlocks();
+                this->detectBlocks(this->cur);
                 ++i;
             }
         }
     } while (!this->end);
-    std::string ret = util::join(this->input, "\n");
-    this->input.clear();
-    return ret;
 }
 
 void InputHandler::rebuildBlocksData(const Pos &from_pos)
 {
-    throw std::logic_error("Not implemented yet!");
+    this->blocks.eraseAfterPos(from_pos);
+    for (size_t pos = from_pos.pos; pos < this->input[from_pos.line].real_length; ++pos)
+    {
+        detectBlocks(Pos(from_pos.line, pos));
+    }
+    for (size_t line_n = from_pos.line + 1; line_n < this->input.size(); ++line_n)
+    {
+        for (size_t pos = 0; pos < this->input[line_n].real_length; ++pos)
+        {
+            detectBlocks(Pos(line_n, pos));
+        }
+    }
 }
 
-void InputHandler::detectBlocks()
+void InputHandler::detectBlocks(const Pos &inpos)
 {
-    auto fopn = blocksMeta.searchStartBeforePos(this->input[this->cur.line].data, this->cur.pos);
-    auto fcls = blocksMeta.searchEndBeforePos(this->input[this->cur.line].data, this->cur.pos);
+    auto fopn = global::blocksMeta.searchStartBeforePos(this->input[inpos.line].data, inpos.pos);
+    auto fcls = global::blocksMeta.searchEndBeforePos(this->input[inpos.line].data, inpos.pos);
     if (!fopn && !fcls)
     {
         return;
     }
     if (this->blocks.open.empty() && fopn)
     {
-        size_t seq_start_pos = this->cur.pos - fopn->start_seq.length();
+        size_t seq_start_pos = inpos.pos - fopn->start_seq.length();
         if (!this->isPosEscaped(seq_start_pos))
         {
             this->blocks.open.push(OpenBlock(*fopn));
             const OpenBlock &ref = this->blocks.open.top();
             // *This is crutial to pass into the `addOpen` method the same reference when a block opens and closes
-            this->blocks.addOpen(Pos(this->cur.line, seq_start_pos), ref); // *
+            this->blocks.addOpen(Pos(inpos.line, seq_start_pos), ref); // *
         }
     }
     else // When there are already opened blocks here
     {
         const OpenBlock &last = this->blocks.open.top();
         // Check if the user print closing of last-opened block
-        if (fcls && last.block == *fcls && last.escaped == this->isPosEscaped(this->cur.pos - fcls->end_seq.length()))
+        if (fcls && last.block == *fcls && last.escaped == this->isPosEscaped(inpos.pos - fcls->end_seq.length()))
         {
             this->blocks.open.pop();
-            this->blocks.addClose(Pos(this->cur.line, this->cur.pos - fcls->end_seq.length()), last); // *
+            this->blocks.addClose(Pos(inpos.line, inpos.pos - fcls->end_seq.length()), last); // *
         }
         else if (fopn) // Check restrictions for opening a nested block
         {
-            size_t seq_start_pos = this->cur.pos - fopn->start_seq.length();
+            size_t seq_start_pos = inpos.pos - fopn->start_seq.length();
             bool esc = this->isPosEscaped(seq_start_pos);
             auto r = last.block.rules; // Following the defined rules
             if (r.esc == esc && (r.all || std::find(r.allowed.begin(), r.allowed.end(), *fopn) != r.allowed.end()))
             {
                 this->blocks.open.push(OpenBlock(*fopn, esc));
                 const OpenBlock &ref = this->blocks.open.top();
-                this->blocks.addOpen(Pos(this->cur.line, seq_start_pos), ref); // *
+                this->blocks.addOpen(Pos(inpos.line, seq_start_pos), ref); // *
             }
         }
     }

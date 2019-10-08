@@ -6,6 +6,7 @@
 // #include <optional>
 #include "input/Position.h"
 #include "input/BlockConstructions.h"
+#include "input/PreParsedInput.h"
 
 namespace bashkir
 {
@@ -29,12 +30,13 @@ private:
 
 public:
     InputHandler(std::shared_ptr<std::vector<std::string>> history);
-    std::string waitInput();
+    PreParsedInput waitInput();
 private:
     void writePrefix();
+    void runInputLoop();
 
     void rebuildBlocksData(const Pos &from_pos);
-    void detectBlocks();
+    void detectBlocks(const Pos &inpos);
 
     void setPos(size_t p) noexcept;
     bool isPosEscaped(size_t pos) const;

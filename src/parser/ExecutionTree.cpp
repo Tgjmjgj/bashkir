@@ -1,65 +1,34 @@
 // #include <assert.h>
+// #include <algorithm>
 #include "parser/ExecutionTree.h"
+#include "global.h"
+#include "util/stlutil.h"
 
 namespace bashkir
 {
 
-const std::string inner_cmd_start = "$(";
-const std::string inner_cmd_end = ")";
+const std::vector<BlockInfo> inline_blocks = 
+    util::filter(global::blocksMeta.blocks, [](const BlockInfo &bi) { return bi.inline_exec; });
 
-bool ExecutionTree::buildTree(const std::string &input)
+bool ExecutionTree::buildTree(const PreParsedInput &input)
 {
     std::shared_ptr<ParseUnit> pu = std::make_shared<ParseUnit>();
-    pu->level = 0;
-    pu->prev = nullptr;
     this->start_point = pu;
-    size_t st_ind = 0, en_ind = 0;
     size_t last_separation_ind = 0;
-    for (size_t i = 0; i < input.length(); ++i)
+    for (const CompressedBlockData &block : input.blocks)
     {
-        if (input[i] == inner_cmd_start[st_ind])
+        if (std::find(inline_blocks.begin(), inline_blocks.end(), block.block) != inline_blocks.end())
         {
-            if (st_ind == inner_cmd_start.length() - 1)
-            {
-                pu->value = input.substr(
-                    last_separation_ind,
-                    i - last_separation_ind - (inner_cmd_start.length() - 1)
-                );
-                last_separation_ind = i + 1;
-                std::shared_ptr<ParseUnit> new_pu = std::make_shared<ParseUnit>();
-                new_pu->level = pu->level + 1;
-                new_pu->prev = pu;
-                pu->next = new_pu;
-                pu = new_pu;
-            }
-            else
-            {
-                ++st_ind;
-            }
-        }
-        if (input[i] == inner_cmd_end[en_ind])
-        {
-            if (en_ind == inner_cmd_end.length() - 1)
-            {
-                pu->value = input.substr(
-                    last_separation_ind,
-                    i - last_separation_ind - (inner_cmd_end.length() - 1)
-                );
-                last_separation_ind = i + 1;
-                std::shared_ptr<ParseUnit> new_pu = std::make_shared<ParseUnit>();
-                new_pu->level = pu->level - 1;
-                new_pu->prev = pu;
-                pu->next = new_pu;
-                pu = new_pu;
-
-            }
-            else
-            {
-                ++en_ind;
-            }
+            const size_t seq_len = (block.is_start ? block.block.start_seq : block.block.end_seq).length();
+            pu->value = input.str.substr(last_separation_ind, block.start_pos - last_separation_ind);
+            last_separation_ind = block.start_pos + seq_len;
+            const size_t new_lvl = pu->level + (block.is_start ? 1 : - 1);
+            std::shared_ptr<ParseUnit> new_pu = std::make_shared<ParseUnit>(new_lvl, pu, nullptr);
+            pu->next = new_pu;
+            pu = new_pu;
         }
     }
-    pu->value = input.substr(last_separation_ind);
+    pu->value = input.str.substr(last_separation_ind);
     pu->next = nullptr;
     return true;
 }
@@ -106,6 +75,9 @@ bool ExecutionTree::setInnerCommandResult(std::shared_ptr<ParseUnit> &target, co
     target->prev = target->next = nullptr;
     return true;
 }
+
+ParseUnit::ParseUnit(uint8_t lev, std::shared_ptr<ParseUnit> prv, std::shared_ptr<ParseUnit> nxt)
+    : level(lev), prev(prv), next(nxt) {}
 
 bool ParseUnit::operator==(const ParseUnit &pu) const
 {

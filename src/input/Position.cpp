@@ -21,4 +21,24 @@ Line::Line(const std::string &init) : Line()
     this->real_length = init.length();
 }
 
+bool Pos::operator>(const Pos &pos2) const
+{
+    return (this->line > pos2.line || (this->line == pos2.line && this->pos > pos2.pos));
+}
+
+bool Pos::operator<(const Pos &pos2) const
+{
+    return (this->line < pos2.line || (this->line == pos2.line && this->pos < pos2.pos));
+}
+
+bool Pos::operator>=(const Pos &pos2) const
+{
+    return (this->line > pos2.line || (this->line == pos2.line && this->pos >= pos2.pos));
+}
+
+bool Pos::operator<=(const Pos &pos2) const
+{
+    return (this->line < pos2.line || (this->line == pos2.line && this->pos <= pos2.pos));
+}
+
 } // namespace bashkir

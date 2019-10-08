@@ -1,4 +1,5 @@
 #include "input/BlockConstructions.h"
+#include "global.h"
 #include "util/strutil.h"
 #include "util/stlutil.h"
 
@@ -9,24 +10,25 @@ BlockInfo& BlockInfo::operator=(const BlockInfo &bi)
 {
     this->start_seq = bi.start_seq;
     this->end_seq = bi.end_seq;
+    this->inline_exec = bi.inline_exec;
     this->rules = bi.rules;
     return *this;
 }
 
 bool BlockInfo::operator==(const BlockInfo &bi) const
 {
-    return this->start_seq == bi.start_seq && this->end_seq == bi.end_seq;
+    return this->start_seq == bi.start_seq && this->end_seq == bi.end_seq && this->inline_exec == bi.inline_exec;
 }
 
 bool BlockInfo::operator!=(const BlockInfo &bi) const
 {
-    return this->start_seq != bi.start_seq || this->end_seq != bi.end_seq;
+    return this->start_seq != bi.start_seq || this->end_seq != bi.end_seq || this->inline_exec != bi.inline_exec;
 }
 
 size_t OpenBlock::last_uid = 0;
 
-OpenBlock::OpenBlock(const BlockInfo &bl, bool esc)
-    : block(bl), escaped(esc), uid(OpenBlock::getNewUid()) {}
+OpenBlock::OpenBlock(const BlockInfo &bl, const Pos &pos, bool esc)
+    : block(bl), start_pos(pos), escaped(esc), uid(OpenBlock::getNewUid()) {}
 
 size_t OpenBlock::getNewUid()
 {
@@ -35,14 +37,14 @@ size_t OpenBlock::getNewUid()
 
 Blocks::Blocks()
 {
-    // { start_seq, end_seq, rules={ all, esc, allowed } }
-    const BlockInfo b1 = { "$(", ")", { true, false, {} } };
-    const BlockInfo b2 = { "[", "]", { true, false, {} } };
-    const BlockInfo b3 = { "{", "}", { true, false, {} } };
-    const BlockInfo b4 = { "'", "'", { false, false, {} } };
-    BlockInfo b5 = { "`", "`", { false, true, { /*b5*/ } } };
+    // { start_seq, end_seq, inline_exec, rules={ all, esc, allowed } }
+    const BlockInfo b1 = { "$(", ")", false, { true, false, {} } };
+    const BlockInfo b2 = { "[", "]", false, { true, false, {} } };
+    const BlockInfo b3 = { "{", "}", false, { true, false, {} } };
+    const BlockInfo b4 = { "'", "'", false, { false, false, {} } };
+    BlockInfo b5 = { "`", "`", true, { false, true, { /*b5*/ } } };
     b5.rules.allowed.push_back(b5);
-    const BlockInfo b6 = { "\"", "\"", { false, false, { b1, b5 } } };
+    const BlockInfo b6 = { "\"", "\"", false, { false, false, { b1, b5 } } };
     this->blocks = { b1, b2, b3, b4, b5, b6 };
 }
 
@@ -122,15 +124,12 @@ Blocks::const_iterator Blocks::end() const
     return this->blocks.end();
 }
 
-BlockPosData::BlockPosData()
-    : start_pos({ 0, 0 }), seq(""), uid(0) {} 
-
-BlockPosData::BlockPosData(Pos spos, const std::string &sq, size_t id)
-    : start_pos(spos), seq(sq), uid(id) {}
+BlockPosData::BlockPosData(const BlockInfo &bl, const Pos &spos, size_t id)
+    : block(bl), start_pos(spos), uid(id) {}
 
 void AllBlocksData::addOpen(Pos start_pos, const OpenBlock &bl)
 {
-    this->all.push_back(BlockPosData(start_pos, bl.block.start_seq, bl.uid));
+    this->all.push_back(BlockPosData(bl.block, start_pos, bl.uid));
 }
 
 void AllBlocksData::addClose(Pos start_pos, const OpenBlock &bl)
@@ -139,7 +138,33 @@ void AllBlocksData::addClose(Pos start_pos, const OpenBlock &bl)
                 this->all,
                 [this, &bl](const BlockPosData &blpos){ return blpos.uid == bl.uid; }
             ).size() == 1);
-    this->all.push_back(BlockPosData(start_pos, bl.block.end_seq, bl.uid));
+    this->all.push_back(BlockPosData(bl.block, start_pos, bl.uid));
+}
+
+std::vector<BlockPosData> AllBlocksData::getFullList() const
+{
+    return this->all;
+}
+
+void AllBlocksData::eraseAfterPos(const Pos &pos)
+{
+    Pos &top = this->open.top().start_pos;
+    while (top >= pos)
+    {
+        this->open.pop();
+        top = this->open.top().start_pos;
+    }
+    top = this->all.back().start_pos;
+    while (top >= pos)
+    {
+        this->all.pop_back();
+        top = this->all.back().start_pos;
+    }
+}
+
+void AllBlocksData::shiftAllAfterPos(const Pos &pos, int val)
+{
+    throw std::logic_error("Not implemented yet!");
 }
 
 } // namespace bashkir
