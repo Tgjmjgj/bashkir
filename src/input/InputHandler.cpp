@@ -48,14 +48,10 @@ InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
 
 PreParsedInput InputHandler::waitInput()
 {
-    this->cur = {0, 0};
+    this->flushState();
     this->writePrefix();
-    this->hist_ind = this->hist->size();
-    this->end = false;
-    this->blocks = AllBlocksData();
     this->runInputLoop();
     const PreParsedInput ret = compressInputData(this->blocks.getFullList(), this->input);
-    this->input.clear();
     assert(std::accumulate(
             ret.blocks.begin(),
             ret.blocks.end(),
@@ -63,6 +59,16 @@ PreParsedInput InputHandler::waitInput()
             [](int sum, const CompressedBlockData &block) { return sum + (block.is_start ? block.uid : -static_cast<int>(block.uid)); }
         ) == 0);
     return ret;
+}
+
+void InputHandler::flushState()
+{
+    this->cur = {0, 0};
+    this->hist_ind = this->hist->size();
+    this->end = false;
+    this->mode = Mode::SINGLELINE;
+    this->blocks = AllBlocksData();
+    this->input.clear();
 }
 
 void InputHandler::writePrefix()

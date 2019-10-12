@@ -11,10 +11,16 @@
 namespace bashkir
 {
 
-
 class InputHandler
 {
 private:
+
+    enum class Mode : uint16_t
+    {
+        SINGLELINE,
+        MULTILINE
+    };
+
     char tmp_buf[input_buffer_size];
     
     const std::shared_ptr<std::vector<std::string>> hist;
@@ -26,12 +32,14 @@ private:
     std::size_t hist_ind;
 
     AllBlocksData blocks;
+    Mode mode = Mode::SINGLELINE;
     bool end = false;
 
 public:
     InputHandler(std::shared_ptr<std::vector<std::string>> history);
     PreParsedInput waitInput();
 private:
+    void flushState();
     void writePrefix();
     void runInputLoop();
 
