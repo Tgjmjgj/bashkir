@@ -69,11 +69,11 @@ void InputHandler::flushState()
     this->mode = Mode::SINGLELINE;
     this->blocks = AllBlocksData();
     this->input.clear();
+    this->input.push_back(Line());
 }
 
 void InputHandler::writePrefix()
 {
-    this->input.push_back(Line());
     std::string cPath = fs::current_path().c_str();
     util::fullToHomeRel(cPath);
     this->input[0].prefix = "paradox> " + cPath + " $ ";
@@ -253,21 +253,33 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
     }
     else if (csi_seq == SEQ_UP_ARROW)
     {
-        // if (this->hist_ind > 0)
-        // {
-        //     this->hist_ind -= 1;
-        //     this->setHistoryItem();
-        // }
-        this->moveCursorUp();
+        if (this->mode == Mode::SINGLELINE)
+        {
+            if (this->hist_ind > 0)
+            {
+                this->hist_ind -= 1;
+                this->setHistoryItem();
+            }
+        }
+        else
+        {
+            this->moveCursorUp();
+        }
     }
     else if (csi_seq == SEQ_DOWN_ARROW)
     {
-        // if (this->hist_ind < this->hist->size() - 1)
-        // {
-        //     this->hist_ind += 1;
-        //     this->setHistoryItem();
-        // }
-        this->moveCursorDown();
+        if (this->mode == Mode::MULTILINE)
+        {
+            if (this->hist_ind < this->hist->size() - 1)
+            {
+                this->hist_ind += 1;
+                this->setHistoryItem();
+            }
+        }
+        else
+        {
+            this->moveCursorDown();
+        }
     }
     else if (csi_seq == SEQ_DELETE)
     {
@@ -359,6 +371,7 @@ void InputHandler::setHistoryItem()
 
 void InputHandler::addNewInputLine()
 {
+    this->mode = Mode::MULTILINE;
     // Update internal input buffer
     this->input.push_back(Line());
     for (size_t line = this->input.size() - 1; line != this->cur.line + 1; --line)
@@ -416,6 +429,10 @@ bool InputHandler::removeInputLine()
     if (this->cur.line == 0 || this->input.size() == 1)
     {
         return false;
+    }
+    if (this->input.size() == 2)
+    {
+        this->mode = Mode::SINGLELINE;
     }
     // Update internal input buffer
     Line &prev_l = this->input[this->cur.line - 1];
