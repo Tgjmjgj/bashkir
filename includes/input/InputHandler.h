@@ -37,11 +37,13 @@ private:
 
     Mode mode = Mode::SINGLELINE;
     bool end = false;
+    bool untouched = false;
 
 public:
     InputHandler(std::shared_ptr<std::vector<std::string>> history);
     PreParsedInput waitInput();
 private:
+    void clearInput();
     void flushState();
     void writePrefix();
     void runInputLoop();
@@ -62,6 +64,7 @@ private:
     void addNewInputLine();
     bool removeInputLine();
 
+    bool moveCursorToBegin();
     bool moveCursorLeft();
     bool moveCursorRight();
     bool moveCursorUp();
