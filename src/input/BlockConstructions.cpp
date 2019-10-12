@@ -150,17 +150,23 @@ std::vector<BlockPosData> AllBlocksData::getFullList() const
 
 void AllBlocksData::eraseAfterPos(const Pos &pos)
 {
-    Pos &top = this->open.top().start_pos;
-    while (top >= pos)
+    if (!this->open.empty())
     {
-        this->open.pop();
-        top = this->open.top().start_pos;
+        Pos &top = this->open.top().start_pos;
+        while (top >= pos && !this->open.empty())
+        {
+            top = this->open.top().start_pos;
+            this->open.pop();
+        }
     }
-    top = this->all.back().start_pos;
-    while (top >= pos)
+    if (!this->all.empty())
     {
-        this->all.pop_back();
-        top = this->all.back().start_pos;
+        Pos &top = this->all.back().start_pos;
+        while (top >= pos && !this->all.empty())
+        {
+            top = this->all.back().start_pos;
+            this->all.pop_back();
+        }
     }
 }
 

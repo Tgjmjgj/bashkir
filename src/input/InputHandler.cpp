@@ -119,13 +119,13 @@ void InputHandler::runInputLoop()
 void InputHandler::rebuildBlocksData(const Pos &from_pos)
 {
     this->blocks.eraseAfterPos(from_pos);
-    for (size_t pos = from_pos.pos; pos < this->input[from_pos.line].real_length; ++pos)
+    for (size_t pos = from_pos.pos; pos < this->input[from_pos.line].real_length + 1; ++pos)
     {
         detectBlocks(Pos(from_pos.line, pos));
     }
     for (size_t line_n = from_pos.line + 1; line_n < this->input.size(); ++line_n)
     {
-        for (size_t pos = 0; pos < this->input[line_n].real_length; ++pos)
+        for (size_t pos = 0; pos < this->input[line_n].real_length + 1; ++pos)
         {
             detectBlocks(Pos(line_n, pos));
         }
