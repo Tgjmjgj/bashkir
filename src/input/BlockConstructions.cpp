@@ -104,6 +104,8 @@ std::optional<BlockInfo> Blocks::searchEndBeforePos(const char *str, size_t pos)
     return std::nullopt;
 }
 
+
+
 Blocks::iterator Blocks::begin()
 {
     return this->blocks.begin();

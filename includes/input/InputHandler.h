@@ -11,6 +11,7 @@
 namespace bashkir
 {
 
+
 class InputHandler
 {
 private:
@@ -25,7 +26,6 @@ private:
     std::size_t hist_ind;
 
     AllBlocksData blocks;
-
     bool end = false;
 
 public:

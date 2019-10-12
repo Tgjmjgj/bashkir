@@ -104,7 +104,6 @@ void InputHandler::runInputLoop()
                 {
                     break;
                 }
-                this->detectBlocks(this->cur);
                 ++i;
             }
         }
@@ -147,7 +146,7 @@ void InputHandler::detectBlocks(const Pos &inpos)
             this->blocks.addOpen(start_pos, ref); // *
         }
     }
-    else // When there are already opened blocks here
+    else if (!this->blocks.open.empty())// When there are already opened blocks here
     {
         const OpenBlock &last = this->blocks.open.top();
         // Check if the user print closing of last-opened block
@@ -280,6 +279,7 @@ void InputHandler::pressSimpleKey(char ch)
     switch (ch)
     {
     case BS_KEY_ENTER:
+        this->rebuildBlocksData(Pos(0, 0));
         if (this->isCurPosEscaped() || !this->blocks.open.empty())
         {
             this->addNewInputLine();
