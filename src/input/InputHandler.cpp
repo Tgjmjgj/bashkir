@@ -6,6 +6,7 @@
 // #include <experimental/filesystem>
 // #include <algorithm>
 #include "input/InputHandler.h"
+#include "input/Autocompletion.h"
 #include "util/strutil.h"
 #include "util/pathutil.h"
 #include "global.h"
@@ -28,6 +29,7 @@ const std::string SEQ_DELETE = "\033[3~";
 const char BS_KEY_ENTER = '\r';
 const char BS_KEY_BACKSPACE = '\177';
 const char BS_KEY_CTRL_C = '\3';
+const char BS_KEY_TAB = '\t';
 
 const uint8_t MIN_CSI_SEQ_LEN = 3;
 
@@ -44,7 +46,10 @@ const std::vector<std::string> CSI_seqs = {
 };
 
 InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
-    : hist(std::move(history)) {}
+    : hist(std::move(history))
+{
+    this->autoc = std::make_unique<Autocompletion>();
+}
 
 PreParsedInput InputHandler::waitInput()
 {
@@ -268,7 +273,7 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
     }
     else if (csi_seq == SEQ_DOWN_ARROW)
     {
-        if (this->mode == Mode::MULTILINE)
+        if (this->mode == Mode::SINGLELINE)
         {
             if (this->hist_ind < this->hist->size() - 1)
             {
@@ -314,6 +319,12 @@ void InputHandler::pressSimpleKey(char ch)
     case BS_KEY_CTRL_C:
         this->writeChars("^C");
         break;
+    case BS_KEY_TAB:
+    {
+        std::string add = this->autoc->complete(this->input[this->cur.line].data, this->cur.pos);
+        this->writeChars(add);
+        break;
+    }
     default:
         this->writeChars(std::string(1, ch));
         break;

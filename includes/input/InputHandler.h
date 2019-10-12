@@ -7,6 +7,7 @@
 #include "input/Position.h"
 #include "input/BlockConstructions.h"
 #include "input/PreParsedInput.h"
+#include "input/interface/IAutocomplete.h"
 
 namespace bashkir
 {
@@ -31,7 +32,9 @@ private:
 
     std::size_t hist_ind;
 
+    std::unique_ptr<IAutocomplete> autoc;
     AllBlocksData blocks;
+
     Mode mode = Mode::SINGLELINE;
     bool end = false;
 
