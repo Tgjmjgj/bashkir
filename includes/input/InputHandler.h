@@ -8,12 +8,16 @@
 #include "input/BlockConstructions.h"
 #include "input/PreParsedInput.h"
 #include "input/interface/IAutocomplete.h"
+#include "input/KeyBindingsMap.h"
 
 namespace bashkir
 {
 
+class InputActions;
+
 class InputHandler
 {
+    friend class InputActions;
 private:
 
     enum class Mode : uint16_t
@@ -22,6 +26,7 @@ private:
         MULTILINE
     };
 
+    KeyBindingsMap keymap;
     char tmp_buf[input_buffer_size];
     
     const std::shared_ptr<std::vector<std::string>> hist;
@@ -60,18 +65,7 @@ private:
     void pressCSIsequence(std::string csi_seq);
     void pressSimpleKey(char ch);
     void writeChars(const std::string &chars);
-    void setHistoryItem();
-    void addNewInputLine();
-    bool removeInputLine();
 
-    bool moveCursorToBegin();
-    bool moveCursorLeft();
-    bool moveCursorRight();
-    bool moveCursorUp();
-    bool moveCursorDown();
-    void moveCursorVertically(size_t from, size_t to);
-    bool removeFromLeft();
-    bool removeFromRight();
 };
 
 } // namespace bashkir

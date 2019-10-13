@@ -6,7 +6,7 @@
 // #include <experimental/filesystem>
 // #include <algorithm>
 #include "input/InputHandler.h"
-#include "input/Autocompletion.h"
+#include "input/interface/CsiSequences.h"
 #include "util/strutil.h"
 #include "util/pathutil.h"
 #include "global.h"
@@ -16,39 +16,23 @@ namespace bashkir
 
 namespace fs = std::experimental::filesystem;
 
-const std::string SEQ_UP_ARROW = "\033[A";
-const std::string SEQ_DOWN_ARROW = "\033[B";
-const std::string SEQ_RIGHT_ARROW = "\033[C";
-const std::string SEQ_LEFT_ARROW = "\033[D";
-const std::string SEQ_SHIFT_UP_ARROW = "\033[1;2A";
-const std::string SEQ_SHIFT_DOWN_ARROW = "\033[1;2B";
-const std::string SEQ_SHIFT_RIGHT_ARROW = "\033[1;2C";
-const std::string SEQ_SHIFT_LEFT_ARROW = "\033[1;2D";
-const std::string SEQ_DELETE = "\033[3~";
-
-const char BS_KEY_ENTER = '\r';
-const char BS_KEY_BACKSPACE = '\177';
-const char BS_KEY_CTRL_C = '\3';
-const char BS_KEY_TAB = '\t';
-
 const uint8_t MIN_CSI_SEQ_LEN = 3;
 
 const std::vector<std::string> CSI_seqs = {
-    SEQ_UP_ARROW,
-    SEQ_DOWN_ARROW,
-    SEQ_RIGHT_ARROW,
-    SEQ_LEFT_ARROW,
-    SEQ_SHIFT_UP_ARROW,
-    SEQ_SHIFT_DOWN_ARROW,
-    SEQ_SHIFT_RIGHT_ARROW,
-    SEQ_SHIFT_LEFT_ARROW,
-    SEQ_DELETE
+    csi::BS_UP_ARROW,
+    csi::BS_DOWN_ARROW,
+    csi::BS_RIGHT_ARROW,
+    csi::BS_LEFT_ARROW,
+    csi::BS_SHIFT_UP_ARROW,
+    csi::BS_SHIFT_DOWN_ARROW,
+    csi::BS_SHIFT_RIGHT_ARROW,
+    csi::BS_SHIFT_LEFT_ARROW,
+    csi::BS_DELETE
 };
 
 InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
-    : hist(std::move(history))
+    : keymap(*this), hist(std::move(history))
 {
-    this->autoc = std::make_unique<Autocompletion>();
     this->input.push_back(Line());
 }
 
@@ -259,65 +243,69 @@ std::optional<std::string> InputHandler::lookForCSISequenceInPos(size_t pos)
 
 void InputHandler::pressCSIsequence(std::string csi_seq)
 {
-    if (csi_seq == SEQ_LEFT_ARROW)
+    if (auto handler = this->keymap[csi_seq]; handler != std::nullopt)
     {
-        this->moveCursorLeft();
+        (*handler)();
     }
-    else if (csi_seq == SEQ_RIGHT_ARROW)
-    {
-        this->moveCursorRight();
-    }
-    else if (csi_seq == SEQ_UP_ARROW || csi_seq == SEQ_SHIFT_UP_ARROW)
-    {
-        // cool formula
-        if (!(((this->mode == Mode::SINGLELINE && !this->untouched) || this->untouched) ^ csi_seq == SEQ_UP_ARROW))
-        {
-            if (this->hist_ind > 0)
-            {
-                this->hist_ind -= 1;
-                this->setHistoryItem();
-            }
-        }
-        else
-        {
-            this->moveCursorUp();
-        }
-    }
-    else if (csi_seq == SEQ_DOWN_ARROW || csi_seq == SEQ_SHIFT_DOWN_ARROW)
-    {
-        if (!(((this->mode == Mode::SINGLELINE && !this->untouched) || this->untouched) ^ csi_seq == SEQ_DOWN_ARROW))
-        {
-            if (this->hist_ind < this->hist->size() - 1)
-            {
-                this->hist_ind += 1;
-                this->setHistoryItem();
-            }
-        }
-        else
-        {
-            this->moveCursorDown();
-        }
-    }
-    else if (csi_seq == SEQ_DELETE)
-    {
-        this->removeFromRight();
-    }
-    else if (csi_seq == SEQ_SHIFT_UP_ARROW)
-    {
-        io.write("\033[33");
-        io.write("\033[?33");
-    }
+    // if (csi_seq == SEQ_LEFT_ARROW)
+    // {
+    //     this->moveCursorLeft();
+    // }
+    // else if (csi_seq == SEQ_RIGHT_ARROW)
+    // {
+    //     this->moveCursorRight();
+    // }
+    // else if (csi_seq == SEQ_UP_ARROW || csi_seq == SEQ_SHIFT_UP_ARROW)
+    // {
+    //     // cool formula
+    //     if (!(((this->mode == Mode::SINGLELINE && !this->untouched) || this->untouched) ^ csi_seq == SEQ_UP_ARROW))
+    //     {
+    //         if (this->hist_ind > 0)
+    //         {
+    //             this->hist_ind -= 1;
+    //             this->setHistoryItem();
+    //         }
+    //     }
+    //     else
+    //     {
+    //         this->moveCursorUp();
+    //     }
+    // }
+    // else if (csi_seq == SEQ_DOWN_ARROW || csi_seq == SEQ_SHIFT_DOWN_ARROW)
+    // {
+    //     if (!(((this->mode == Mode::SINGLELINE && !this->untouched) || this->untouched) ^ csi_seq == SEQ_DOWN_ARROW))
+    //     {
+    //         if (this->hist_ind < this->hist->size() - 1)
+    //         {
+    //             this->hist_ind += 1;
+    //             this->setHistoryItem();
+    //         }
+    //     }
+    //     else
+    //     {
+    //         this->moveCursorDown();
+    //     }
+    // }
+    // else if (csi_seq == SEQ_DELETE)
+    // {
+    //     this->removeFromRight();
+    // }
+    // else if (csi_seq == SEQ_SHIFT_UP_ARROW)
+    // {
+    //     io.write("\033[33");
+    //     io.write("\033[?33");
+    // }
 }
 
 void InputHandler::pressSimpleKey(char ch)
 {
-    switch (ch)
+    auto handler = this->keymap[ch];
+    if (ch == csi::BS_KEY_ENTER)
     {
-    case BS_KEY_ENTER:
         this->rebuildBlocksData(Pos(0, 0));
-        if (this->isCurPosEscaped() || !this->blocks.open.empty())
+        if (handler != std::nullopt && (this->isCurPosEscaped() || !this->blocks.open.empty()))
         {
-            this->addNewInputLine();
+            (*handler)();
         }
         else
         {
@@ -325,19 +313,17 @@ void InputHandler::pressSimpleKey(char ch)
             this->untouched = false;
             this->end = true;
         }
-        break;
-    case BS_KEY_BACKSPACE:
-        this->removeFromLeft();
-        break;
-    case BS_KEY_CTRL_C:
+
+    }
+    else if (handler != std::nullopt)
+    {
+        (*handler)();
+    }
+    else switch (ch)
+    {
+    case csi::BS_KEY_CTRL_C:
         this->writeChars("^C");
         break;
-    case BS_KEY_TAB:
-    {
-        std::string add = this->autoc->complete(this->input[this->cur.line].data, this->cur.pos);
-        this->writeChars(add);
-        break;
-    }
     default:
         this->writeChars(std::string(1, ch));
         break;
@@ -364,404 +350,6 @@ void InputHandler::writeChars(const std::string &chars)
     this->untouched = false;
     line.real_length += chars.length();
     assert(line.real_length == strlen(line.data));
-}
-
-void InputHandler::setHistoryItem()
-{
-    Line &line = this->input[this->cur.line];
-    std::string hist_item = (*(this->hist))[this->hist_ind];
-    std::vector<std::string> hist_lines = util::split(hist_item, '\n');
-    // Update presentation on the screen
-    this->moveCursorToBegin();
-    size_t line_len = hist_lines[0].length();
-    io.write(hist_lines[0]);
-    size_t end_pos = this->input[0].prefix.length() + hist_lines[0].length();
-    if (this->input[0].real_length > line_len)
-    {
-        io.write(std::string(this->input[0].real_length - line_len, ' '));
-    }
-    size_t bound = std::max(this->input.size(), hist_lines.size());
-    for (size_t i = 1; i < bound; ++i)
-    {
-        size_t line_len = 0;
-        io.write('\n');
-        if (i < hist_lines.size())
-        {
-            io.write(new_line_prefix);
-            io.write(hist_lines[i]);
-            line_len = hist_lines[i].length();
-            end_pos = new_line_prefix.size() + line_len;
-        }
-        else
-        {
-            io.write(std::string(this->input[i].prefix.length(), ' '));
-        }
-        if (i < this->input.size() && this->input[i].real_length > line_len)
-        {
-            io.write(std::string(this->input[i].real_length - line_len, ' '));
-        }
-    }
-    size_t cur_pos = (bound == 1 ? this->input[0].prefix.length() : new_line_prefix.length());
-    if (hist_lines.size() > this->input.size())
-    {
-        cur_pos += hist_lines.back().length();
-    }
-    else if (hist_lines.size() < this->input.size())
-    {
-        cur_pos += this->input.back().real_length;
-    }
-    else
-    {
-        cur_pos += std::max(hist_lines.back().length(), this->input.back().real_length);
-    }
-    for (size_t i = 0; i < bound - hist_lines.size(); ++i)
-    {
-        io.write(SEQ_UP_ARROW);
-    }
-    int delta = static_cast<int>(end_pos) - static_cast<int>(cur_pos);
-    if (delta >= 0 )
-    {
-        for (size_t i = 0; i < std::abs(delta); ++i)
-        {
-            io.write(SEQ_RIGHT_ARROW);
-        }
-    }
-    else
-    {
-        io.write(std::string(-delta, '\b'));
-    }
-    // Update internal input buffer
-    this->clearInput();
-    strcpy(this->input[0].data, hist_lines[0].c_str());
-    this->input[0].real_length = hist_lines[0].length();
-    for (size_t i = 1; i < hist_lines.size(); ++i)
-    {
-        this->input.push_back(Line(hist_lines[i]));
-    }
-    if (hist_lines.size() > 1)
-    {
-        this->mode = Mode::MULTILINE;
-    }
-    else
-    {
-        this->mode = Mode::SINGLELINE;
-    }
-    size_t pref_len = (hist_lines.size() == 1 ? this->input[0].prefix.length() : new_line_prefix.length());
-    this->cur.line = hist_lines.size() - 1;
-    this->setPos(end_pos - pref_len);
-    this->untouched = true;
-}
-
-void InputHandler::addNewInputLine()
-{
-    this->mode = Mode::MULTILINE;
-    // Update internal input buffer
-    this->input.push_back(Line());
-    for (size_t line = this->input.size() - 1; line != this->cur.line + 1; --line)
-    {
-        this->input[line] = this->input[line - 1];
-    }
-    if (this->cur.pos != this->input[this->cur.line].real_length)
-    {
-        if (this->cur.pos == 0)
-        {
-            this->input[this->cur.line + 1] = this->input[this->cur.line];
-            this->input[this->cur.line] = Line();
-        }
-        else
-        {
-            auto parts = util::splitInHalf(std::string(this->input[this->cur.line].data), this->cur.pos);
-            this->input[this->cur.line] = Line(std::get<0>(parts));
-            this->input[this->cur.line + 1] = Line(std::get<1>(parts));
-        }
-    }
-    
-    // Update presentation on the screen
-    io.write(std::string(this->input[this->cur.line + 1].real_length, ' ') + '\n');
-    for (size_t line = this->cur.line + 1; line < this->input.size(); ++line)
-    {
-        io.write(this->input[line].prefix);
-        io.write(this->input[line].data);
-        if (line != this->input.size() - 1)
-        {
-            int delta_length = this->input[line + 1].real_length - this->input[line].real_length;
-            if (delta_length > 0)
-            {
-                io.write(std::string(delta_length, ' '));
-            }
-        }
-        if (line != this->input.size() - 1)
-        {
-            io.write('\n');
-        }
-    }
-    for (size_t i = 0; i < this->input[this->input.size() - 1].real_length; ++i)
-    {
-        io.write(SEQ_LEFT_ARROW);
-    }
-    for (size_t i = 0; i < this->input.size() - this->cur.line - 2; ++i)
-    {
-        io.write(SEQ_UP_ARROW);
-    }
-    this->cur.line++;
-    this->setPos(0);
-    this->untouched = false;
-}
-
-bool InputHandler::removeInputLine()
-{
-    if (this->cur.line == 0 || this->input.size() == 1)
-    {
-        return false;
-    }
-    if (this->input.size() == 2)
-    {
-        this->mode = Mode::SINGLELINE;
-    }
-    // Update internal input buffer
-    Line &prev_l = this->input[this->cur.line - 1];
-    Line &cur_l = this->input[this->cur.line];
-    size_t orig_prev_len = prev_l.real_length;
-    for (size_t i = 0; i < cur_l.real_length; ++i)
-    {
-        prev_l.data[prev_l.real_length + i] = cur_l.data[i];
-    }
-    prev_l.real_length += cur_l.real_length;
-    std::string erased_prefix = this->input[this->input.size() - 1].prefix;
-    for (size_t line = this->cur.line; line < this->input.size() - 1; ++line)
-    {
-        std::string tmp_pref = this->input[line].prefix;
-        this->input[line] = this->input[line + 1];
-        this->input[line].prefix = tmp_pref;
-    }
-    this->input.pop_back();
-
-    // Update presentation on the screen
-    io.write(SEQ_UP_ARROW);
-    int delta_prefix_length = this->input[this->cur.line - 1].prefix.length() - this->input[this->cur.line].prefix.length();
-    int delta_length = delta_prefix_length - this->cur.pos;
-    for (size_t i = 0; i < delta_length; ++i)
-    {  
-        if (delta_length > 0)
-        {
-            io.write(SEQ_RIGHT_ARROW);
-        }
-        else
-        {
-            io.write(SEQ_LEFT_ARROW);
-        }
-    }
-    io.write(this->input[this->cur.line - 1].data);
-    io.write('\n');
-    for (size_t line = this->cur.line; line < this->input.size(); ++line)
-    {
-        io.write(this->input[line].prefix);
-        io.write(this->input[line].data);
-        delta_length = (line == this->cur.line ? orig_prev_len : this->input[line - 1].real_length) - this->input[line].real_length;
-        if (delta_length > 0)
-        {
-            io.write(std::string(delta_length, ' '));
-        }
-        io.write('\n');
-    }
-    io.write(std::string(erased_prefix.length(), ' '));
-    io.write(std::string(this->input.back().real_length, ' '));
-    delta_length = delta_prefix_length + orig_prev_len - this->input[this->input.size() - 1].real_length;
-    for (size_t i = 0; i < static_cast<size_t>(std::abs(delta_length)); ++i)
-    {
-        if (delta_length > 0)
-        {
-            io.write(SEQ_RIGHT_ARROW);
-        }
-        else
-        {
-            io.write(SEQ_LEFT_ARROW);
-        }
-    }
-    for (size_t i = 0; i < this->input.size() - this->cur.line + 1; ++i)
-    {
-        io.write(SEQ_UP_ARROW);
-    }
-    this->cur.line--;
-    this->setPos(orig_prev_len);
-    this->untouched = false;
-    return true;
-}
-
-bool InputHandler::moveCursorToBegin()
-{
-    if (this->cur.line == 0 && this->cur.pos == 0)
-    {
-        return false;
-    }
-    while (this->moveCursorUp());
-    while (this->moveCursorLeft());
-    return true;
-}
-
-bool InputHandler::moveCursorLeft()
-{
-    if (this->cur.line == 0 && this->cur.pos == 0)
-    {
-        return false;
-    }
-    if (this->cur.pos > 0)
-    {
-        io.write('\b');
-        this->setPos(this->cur.pos - 1);
-    }
-    else
-    {
-        // need to move to the end of prev line
-        this->cur.line--;
-        this->setPos(this->input[this->cur.line].real_length);
-        io.write(SEQ_UP_ARROW);
-        int delta_pref_len = this->input[this->cur.line].prefix.length() - this->input[this->cur.line + 1].prefix.length();
-        size_t shift_num = this->cur.pos + delta_pref_len;
-        for (size_t i = 0; i < shift_num; ++i)
-        {
-            io.write(SEQ_RIGHT_ARROW);
-        }
-    }
-    return true;
-}
-
-bool InputHandler::moveCursorRight()
-{
-    if (this->cur.line == this->input.size() - 1 && this->cur.pos == this->input.back().real_length)
-    {
-        return false;
-    }
-    if (this->cur.pos < this->input[this->cur.line].real_length)
-    {
-        io.write(SEQ_RIGHT_ARROW);
-        this->setPos(this->cur.pos + 1);
-    }
-    else
-    {
-        // move to the begin (after prefix) of the next line
-        this->cur.line++;
-        this->setPos(0);
-        io.write(SEQ_DOWN_ARROW);
-        int delta_pref_len = this->input[this->cur.line - 1].prefix.length() - this->input[this->cur.line].prefix.length();
-        size_t shift_num = this->input[this->cur.line - 1].real_length + delta_pref_len;
-        for (size_t i = 0; i < shift_num; ++i)
-        {
-            io.write(SEQ_LEFT_ARROW);
-        }
-    }
-    return true;
-}
-
-bool InputHandler::moveCursorUp()
-{
-    if (this->cur.line > 0)
-    {
-        this->moveCursorVertically(this->cur.line, this->cur.line - 1);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool InputHandler::moveCursorDown()
-{
-    if (this->cur.line < this->input.size() - 1)
-    {
-        this->moveCursorVertically(this->cur.line, this->cur.line + 1);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-void InputHandler::moveCursorVertically(size_t from_num, size_t to_num)
-{
-    io.write(from_num > to_num ? SEQ_UP_ARROW : SEQ_DOWN_ARROW);
-    Line &from = this->input[from_num];
-    Line &to = this->input[to_num];
-    int prf = static_cast<int>(to.prefix.length()) - static_cast<int>(from.prefix.length());
-    int len = static_cast<int>(to.real_length);
-    int pos = static_cast<int>(this->cur.pos);
-    int memp = static_cast<int>(this->mem);
-    int incr = std::min(memp, len) - pos;
-    int shift = incr + prf;
-    if (shift < 0)
-    {
-        io.write(std::string(-shift, '\b'));
-    }
-    else
-    {
-        for (int i = 0; i < shift; ++i)
-        {
-            io.write(SEQ_RIGHT_ARROW);
-        }
-    }
-    this->cur.pos += incr;
-    this->cur.line += (from_num > to_num ? -1 : 1);
-}
-
-bool InputHandler::removeFromLeft()
-{
-    if (!(this->cur.line == 0 && this->cur.pos == 0))
-    {
-        if (this->cur.pos > 0)
-        {
-            Line &line = this->input[this->cur.line];
-            std::size_t subs_len = line.real_length - this->cur.pos;
-            std::string last_part = util::substr(std::string(line.data), this->cur.pos, subs_len);
-            io.write('\b');
-            io.write(last_part);
-            io.write(" \b");
-            io.write(std::string(subs_len, '\b'));
-            line.real_length -= 1;
-            this->setPos(this->cur.pos - 1);
-            for (std::size_t i = 0; i <= subs_len; ++i)
-            {
-                line.data[this->cur.pos + i] = line.data[this->cur.pos + i + 1];
-            }
-            this->untouched = false;
-        }
-        else
-        {
-            this->removeInputLine();
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool InputHandler::removeFromRight()
-{
-    // Delete key can't remove new line, but backspace can
-    Line &line = this->input[this->cur.line];
-    if (this->cur.pos < line.real_length)
-    {
-        std::size_t subs_len = line.real_length - this->cur.pos - 1;
-        std::string last_part = util::substr(std::string(line.data), this->cur.pos + 1, subs_len);
-        io.write(last_part);
-        io.write(' ');
-        line.data[line.real_length] = '\0';
-        line.real_length -= 1;
-        io.write(std::string(subs_len + 1, '\b'));
-        for (std::size_t i = 0; i <= subs_len; ++i)
-        {
-            line.data[this->cur.pos + i] = line.data[this->cur.pos + i + 1];
-        }
-        this->untouched = false;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 } // namespace bashkir

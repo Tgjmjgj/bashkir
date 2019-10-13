@@ -13,6 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <functional>
 #include <numeric>
 #include <iterator>
 #include <exception>
