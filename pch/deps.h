@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 #include <stack>
+#include <set>
+#include <tuple>
 #include <memory>
 #include <regex>
 #include <fstream>
@@ -17,6 +19,8 @@
 #include <numeric>
 #include <iterator>
 #include <exception>
+#include <optional>
+#include <variant>
 
 // C
 #include <string.h>

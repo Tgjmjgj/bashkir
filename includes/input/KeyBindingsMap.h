@@ -1,7 +1,7 @@
 #pragma once
 #include "deps.h"
+#include "input/InputSpecialKey.h"
 #include "input/InputActions.h"
-// #include <string>
 // #include <map>
 // #include <optional>
 // #include <functional>
@@ -14,13 +14,11 @@ class KeyBindingsMap
 using handler = std::function<bool(void)>;
 private:
     InputActions actions;
-    std::map<char, handler> key_map;
-    std::map<std::string, handler> seq_map;
+    std::map<InputSpecialKey, handler> key_map;
 
 public:
     KeyBindingsMap(InputHandler &owner);
-    std::optional<handler> operator[](char key) const;
-    std::optional<handler> operator[](const std::string &key) const;
+    std::optional<handler> get(const InputSpecialKey &key) const;
 private:
     void bindKeys();
 };

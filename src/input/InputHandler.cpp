@@ -243,7 +243,7 @@ std::optional<std::string> InputHandler::lookForCSISequenceInPos(size_t pos)
 
 void InputHandler::pressCSIsequence(std::string csi_seq)
 {
-    if (auto handler = this->keymap[csi_seq]; handler != std::nullopt)
+    if (auto handler = this->keymap.get(csi_seq); handler != std::nullopt)
     {
         (*handler)();
     }
@@ -299,7 +299,8 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
 
 void InputHandler::pressSimpleKey(char ch)
 {
-    auto handler = this->keymap[ch];
+    
+    auto handler = this->keymap.get(ch, 0);
     if (ch == csi::BS_KEY_ENTER)
     {
         this->rebuildBlocksData(Pos(0, 0));
