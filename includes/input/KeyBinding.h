@@ -13,19 +13,26 @@ class KeyBinding
 {
 public:
 using handler = std::function<bool(void)>;
-private:
+protected:
     const std::regex key_regex;
-    const std::vector<InputOption> options;
 public:
     const handler action;
-public:
+
     KeyBinding(const std::regex &key_rgx, handler fn);
-    KeyBinding(const std::regex &key_rgx, InputOption opt, handler fn);
-    KeyBinding(const std::regex &key_rgx, const std::vector<InputOption> &opts, handler fn);
     
+    bool match(const std::string &test_seq) const;
+};
+
+class OptKeyBinding : public KeyBinding
+{
+public:
+    const std::vector<InputOption> options;
+
+    OptKeyBinding(const std::regex &key_rgx, InputOption opt, handler fn);
+    OptKeyBinding(const std::regex &key_rgx, const std::vector<InputOption> &opts, handler fn);
+
     bool match(const std::string &test_seq, const std::vector<InputOption> &opts) const;
 
-    KeyBinding operator=(const KeyBinding& bind);
 };
 
 } // namespace bashkir

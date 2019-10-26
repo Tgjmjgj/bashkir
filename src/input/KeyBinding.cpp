@@ -7,20 +7,20 @@ namespace bashkir
 KeyBinding::KeyBinding(const std::regex &key_rgx, KeyBinding::handler fn) 
     : key_regex(key_rgx), action(fn) {}
 
-std::vector<InputOption> vec(InputOption opt)
+bool KeyBinding::match(const std::string &test_seq) const
 {
-    return { opt };
+    return std::regex_match(test_seq, this->key_regex);
 }
 
-KeyBinding::KeyBinding(const std::regex &key_rgx, InputOption opt, KeyBinding::handler fn)
-    : key_regex(key_rgx), options(vec(opt)), action(fn) {}
+OptKeyBinding::OptKeyBinding(const std::regex &key_rgx, InputOption opt, KeyBinding::handler fn)
+    : KeyBinding(key_rgx, fn), options({ opt }) {}
 
-KeyBinding::KeyBinding(const std::regex &key_rgx, const std::vector<InputOption> &opts, KeyBinding::handler fn)
-    : key_regex(key_rgx), options(opts), action(fn) {}
+OptKeyBinding::OptKeyBinding(const std::regex &key_rgx, const std::vector<InputOption> &opts, KeyBinding::handler fn)
+    : KeyBinding(key_rgx, fn), options(opts) {}
 
-bool KeyBinding::match(const std::string &test_seq, const std::vector<InputOption> &opts) const
+bool OptKeyBinding::match(const std::string &test_seq, const std::vector<InputOption> &opts) const
 {
-    if (this->options != opts)
+    if (!this->options.empty() && this->options != opts)
     {
         return false;
     }

@@ -18,14 +18,31 @@ void KeyBindingsMap::bindKeys()
     this->bindings.push_back(KeyBinding(csi::BS_KEY_BACKSPACE, std::bind(&InputActions::removeFromLeft, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_KEY_TAB, std::bind(&InputActions::autocomplete, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_UP_ARROW, std::bind(&InputActions::prevHistoryItem, &actions)));
-    this->bindings.push_back(KeyBinding(csi::BS_UP_ARROW, InputOption::MULTILINE_MODE_ACTIVE, std::bind(&InputActions::moveCursorUp, &actions)));
-    this->bindings.push_back(KeyBinding(csi::BS_SHIFT_UP_ARROW, InputOption::MULTILINE_MODE_ACTIVE, std::bind(&InputActions::prevHistoryItem, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_DOWN_ARROW, std::bind(&InputActions::nextHistoryItem, &actions)));
-    this->bindings.push_back(KeyBinding(csi::BS_DOWN_ARROW , InputOption::MULTILINE_MODE_ACTIVE, std::bind(&InputActions::moveCursorDown, &actions)));
-    this->bindings.push_back(KeyBinding(csi::BS_SHIFT_DOWN_ARROW , InputOption::MULTILINE_MODE_ACTIVE, std::bind(&InputActions::nextHistoryItem, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_RIGHT_ARROW, std::bind(&InputActions::moveCursorRight, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_LEFT_ARROW, std::bind(&InputActions::moveCursorLeft, &actions)));
     this->bindings.push_back(KeyBinding(csi::BS_DELETE, std::bind(&InputActions::removeFromRight, &actions)));
+
+    this->bindings_spec.push_back(OptKeyBinding(
+        csi::BS_UP_ARROW,
+        InputOption::MULTILINE_MODE_ACTIVE,
+        std::bind(&InputActions::moveCursorUp, &actions)
+    ));
+    this->bindings_spec.push_back(OptKeyBinding(
+        csi::BS_SHIFT_UP_ARROW,
+        InputOption::MULTILINE_MODE_ACTIVE,
+        std::bind(&InputActions::prevHistoryItem, &actions)
+    ));
+    this->bindings_spec.push_back(OptKeyBinding(
+        csi::BS_DOWN_ARROW,
+        InputOption::MULTILINE_MODE_ACTIVE,
+        std::bind(&InputActions::moveCursorDown, &actions)
+    ));
+    this->bindings_spec.push_back(OptKeyBinding(
+        csi::BS_SHIFT_DOWN_ARROW,
+        InputOption::MULTILINE_MODE_ACTIVE,
+        std::bind(&InputActions::nextHistoryItem, &actions)
+    ));
 }
 
 std::optional<KeyBinding::handler> KeyBindingsMap::get(char ch) const
@@ -60,9 +77,16 @@ std::optional<KeyBinding::handler> KeyBindingsMap::get(const std::string &csi_se
 
 std::optional<KeyBinding::handler> KeyBindingsMap::getImpl(const std::string &key_seq, const std::vector<InputOption> &opts) const
 {
-    for (const KeyBinding &bind : this->bindings)
+    for (const OptKeyBinding &bind : this->bindings_spec)
     {
         if (bind.match(key_seq, opts))
+        {
+            return bind.action;
+        }
+    }
+    for (const KeyBinding &bind : this->bindings)
+    {
+        if (bind.match(key_seq))
         {
             return bind.action;
         }

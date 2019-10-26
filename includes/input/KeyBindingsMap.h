@@ -13,6 +13,9 @@ class KeyBindingsMap
 {
 private:
     InputActions actions;
+    // first priority
+    std::vector<OptKeyBinding> bindings_spec;
+    // second priority
     std::vector<KeyBinding> bindings;
 
 public:

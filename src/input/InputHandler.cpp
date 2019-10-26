@@ -8,6 +8,7 @@
 // #include <regex>
 #include "input/InputHandler.h"
 #include "input/CsiSequences.h"
+#include "input/interface/InputOption.h"
 #include "util/strutil.h"
 #include "util/pathutil.h"
 #include "global.h"
@@ -196,7 +197,13 @@ bool InputHandler::isCurPosEscaped() const
 void InputHandler::pressCsiSequence(const std::string &csi_seq)
 {
     if (log::Lev3()) log::to.Info(csi_seq);
-    if (auto handler = this->keymap.get(csi_seq); handler != std::nullopt)
+    std::vector<InputOption> flags;
+    if (this->mode == Mode::MULTILINE && !this->untouched)
+    {
+        flags.push_back(InputOption::MULTILINE_MODE_ACTIVE);
+    }
+    auto handler = this->keymap.get(csi_seq, flags); 
+    if (handler != std::nullopt)
     {
         (*handler)();
     }
