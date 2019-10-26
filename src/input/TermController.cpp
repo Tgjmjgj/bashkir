@@ -1,5 +1,4 @@
 #include "input/TermController.h"
-#include "input/interface/CsiSequences.h"
 #include "global.h"
 
 namespace bashkir

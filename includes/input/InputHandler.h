@@ -61,8 +61,7 @@ private:
     bool isPosEscaped(size_t pos, size_t line) const;
     bool isCurPosEscaped() const;
 
-    std::optional<std::string> lookForCSISequenceInPos(size_t pos);
-    void pressCSIsequence(std::string csi_seq);
+    void pressCsiSequence(const std::string &csi_seq);
     void pressSimpleKey(char ch);
     void writeChars(const std::string &chars);
 

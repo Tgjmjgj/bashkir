@@ -56,6 +56,8 @@
         "condition_variable": "cpp",
         "mutex": "cpp",
         "thread": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "unordered_set": "cpp",
+        "set": "cpp"
     }
 }

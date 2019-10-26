@@ -185,63 +185,26 @@ bool InputActions::removeFromRight() const
     }
 }
 
-bool InputActions::addNewInputLine() const
-{
-    this->owner.mode = InputHandler::Mode::MULTILINE;
-    // Update internal input buffer
-    this->owner.input.push_back(Line());
-    for (size_t line = this->owner.input.size() - 1; line != this->owner.cur.line + 1; --line)
-    {
-        this->owner.input[line] = this->owner.input[line - 1];
-    }
-    if (this->owner.cur.pos != this->owner.input[this->owner.cur.line].real_length)
-    {
-        if (this->owner.cur.pos == 0)
-        {
-            this->owner.input[this->owner.cur.line + 1] = this->owner.input[this->owner.cur.line];
-            this->owner.input[this->owner.cur.line] = Line();
-        }
-        else
-        {
-            auto parts = util::splitInHalf(std::string(this->owner.input[this->owner.cur.line].data), this->owner.cur.pos);
-            this->owner.input[this->owner.cur.line] = Line(std::get<0>(parts));
-            this->owner.input[this->owner.cur.line + 1] = Line(std::get<1>(parts));
-        }
-    }
-    
-    // Update presentation on the screen
-    io.write(std::string(this->owner.input[this->owner.cur.line + 1].real_length, ' ') + '\n');
-    for (size_t line = this->owner.cur.line + 1; line < this->owner.input.size(); ++line)
-    {
-        io.write(this->owner.input[line].prefix);
-        io.write(this->owner.input[line].data);
-        if (line != this->owner.input.size() - 1)
-        {
-            int delta_length = this->owner.input[line + 1].real_length - this->owner.input[line].real_length;
-            if (delta_length > 0)
-            {
-                io.write(std::string(delta_length, ' '));
-            }
-        }
-        if (line != this->owner.input.size() - 1)
-        {
-            io.write('\n');
-        }
-    }
-    TermController::moveCursorLeft(this->owner.input[this->owner.input.size() - 1].real_length);
-    TermController::moveCursorUp(this->owner.input.size() - this->owner.cur.line - 2);
-    this->owner.cur.line++;
-    this->owner.setPos(0);
-    this->owner.untouched = false;
-    return true;
-}
-
 bool InputActions::autocomplete() const
 {
     std::string add = this->autoc->complete(this->owner.input[this->owner.cur.line].data, this->owner.cur.pos);
     this->owner.writeChars(add);
 }
 
+bool InputActions::newLineOrSubmit() const
+{
+    this->owner.rebuildBlocksData(Pos(0, 0));
+    if (this->owner.isCurPosEscaped() || !this->owner.blocks.open.empty())
+    {
+        this->addNewInputLine();
+    }
+    else
+    {
+        io.write("\r\n");
+        this->owner.untouched = false;
+        this->owner.end = true;
+    }
+}
 void InputActions::setHistoryItem(size_t n) const
 {
     Line &line = this->owner.input[this->owner.cur.line];
@@ -320,6 +283,57 @@ void InputActions::setHistoryItem(size_t n) const
     this->owner.cur.line = hist_lines.size() - 1;
     this->owner.setPos(end_pos - pref_len);
     this->owner.untouched = true;
+}
+
+bool InputActions::addNewInputLine() const
+{
+    this->owner.mode = InputHandler::Mode::MULTILINE;
+    // Update internal input buffer
+    this->owner.input.push_back(Line());
+    for (size_t line = this->owner.input.size() - 1; line != this->owner.cur.line + 1; --line)
+    {
+        this->owner.input[line] = this->owner.input[line - 1];
+    }
+    if (this->owner.cur.pos != this->owner.input[this->owner.cur.line].real_length)
+    {
+        if (this->owner.cur.pos == 0)
+        {
+            this->owner.input[this->owner.cur.line + 1] = this->owner.input[this->owner.cur.line];
+            this->owner.input[this->owner.cur.line] = Line();
+        }
+        else
+        {
+            auto parts = util::splitInHalf(std::string(this->owner.input[this->owner.cur.line].data), this->owner.cur.pos);
+            this->owner.input[this->owner.cur.line] = Line(std::get<0>(parts));
+            this->owner.input[this->owner.cur.line + 1] = Line(std::get<1>(parts));
+        }
+    }
+    
+    // Update presentation on the screen
+    io.write(std::string(this->owner.input[this->owner.cur.line + 1].real_length, ' ') + '\n');
+    for (size_t line = this->owner.cur.line + 1; line < this->owner.input.size(); ++line)
+    {
+        io.write(this->owner.input[line].prefix);
+        io.write(this->owner.input[line].data);
+        if (line != this->owner.input.size() - 1)
+        {
+            int delta_length = this->owner.input[line + 1].real_length - this->owner.input[line].real_length;
+            if (delta_length > 0)
+            {
+                io.write(std::string(delta_length, ' '));
+            }
+        }
+        if (line != this->owner.input.size() - 1)
+        {
+            io.write('\n');
+        }
+    }
+    TermController::moveCursorLeft(this->owner.input[this->owner.input.size() - 1].real_length);
+    TermController::moveCursorUp(this->owner.input.size() - this->owner.cur.line - 2);
+    this->owner.cur.line++;
+    this->owner.setPos(0);
+    this->owner.untouched = false;
+    return true;
 }
 
 bool InputActions::removeInputLine() const

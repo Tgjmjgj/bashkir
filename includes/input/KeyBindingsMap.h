@@ -1,25 +1,30 @@
 #pragma once
 #include "deps.h"
-#include "input/InputSpecialKey.h"
+#include "input/KeyBinding.h"
 #include "input/InputActions.h"
-// #include <map>
+// #include <vector>
+// #include <set>
 // #include <optional>
-// #include <functional>
 
 namespace bashkir
 {
 
 class KeyBindingsMap
 {
-using handler = std::function<bool(void)>;
 private:
     InputActions actions;
-    std::map<InputSpecialKey, handler> key_map;
+    std::vector<KeyBinding> bindings;
 
 public:
     KeyBindingsMap(InputHandler &owner);
-    std::optional<handler> get(const InputSpecialKey &key) const;
+    std::optional<KeyBinding::handler> get(char ch) const;
+    std::optional<KeyBinding::handler> get(char ch, InputOption opt) const;
+    std::optional<KeyBinding::handler> get(char ch, const std::vector<InputOption> &opts) const;
+    std::optional<KeyBinding::handler> get(const std::string &csi_seq) const;
+    std::optional<KeyBinding::handler> get(const std::string &csi_seq, InputOption opt) const;
+    std::optional<KeyBinding::handler> get(const std::string &csi_seq, const std::vector<InputOption> &opts) const;
 private:
+    std::optional<KeyBinding::handler> getImpl(const std::string &key_seq, const std::vector<InputOption> &opts) const;
     void bindKeys();
 };
 

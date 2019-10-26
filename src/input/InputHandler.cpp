@@ -5,8 +5,9 @@
 // #include <map>
 // #include <experimental/filesystem>
 // #include <algorithm>
+// #include <regex>
 #include "input/InputHandler.h"
-#include "input/interface/CsiSequences.h"
+#include "input/CsiSequences.h"
 #include "util/strutil.h"
 #include "util/pathutil.h"
 #include "global.h"
@@ -15,20 +16,6 @@ namespace bashkir
 {
 
 namespace fs = std::experimental::filesystem;
-
-const uint8_t MIN_CSI_SEQ_LEN = 3;
-
-const std::vector<std::string> CSI_seqs = {
-    csi::BS_UP_ARROW,
-    csi::BS_DOWN_ARROW,
-    csi::BS_RIGHT_ARROW,
-    csi::BS_LEFT_ARROW,
-    csi::BS_SHIFT_UP_ARROW,
-    csi::BS_SHIFT_DOWN_ARROW,
-    csi::BS_SHIFT_RIGHT_ARROW,
-    csi::BS_SHIFT_LEFT_ARROW,
-    csi::BS_DELETE
-};
 
 InputHandler::InputHandler(std::shared_ptr<std::vector<std::string>> history)
     : keymap(*this), hist(std::move(history))
@@ -82,35 +69,29 @@ void InputHandler::writePrefix()
 
 void InputHandler::runInputLoop()
 {
+    std::string csi_buffer;
     do
     {
         memset(this->tmp_buf, 0, sizeof(this->tmp_buf));
         read(STDIN_FILENO, &this->tmp_buf, sizeof(this->tmp_buf));
         std::size_t rlen = strlen(this->tmp_buf);
-        for (std::size_t i = 0; i < rlen;)
+        for (std::size_t i = 0; i < rlen; ++i)
         {
-            bool found_csi = false;
-            if (i + MIN_CSI_SEQ_LEN <= rlen && this->tmp_buf[i] == '\033' && this->tmp_buf[i + 1] == '[')
+            csi_buffer += this->tmp_buf[i];
+            csi::CsiMatchStatus ret = csi::matchCsi(csi_buffer);
+            if (ret == csi::CsiMatchStatus::FULL_MATCH)
             {
-                auto csi = this->lookForCSISequenceInPos(i);
-                if (csi)
-                {
-                    found_csi = true;
-                    if (log::Lev3()) log::to.Info(*csi);
-                    this->pressCSIsequence(*csi);
-                    i += csi->length();
-                }
+                this->pressCsiSequence(csi_buffer);
+                csi_buffer = "";
             }
-            if (!found_csi)
+            else if (ret == csi::CsiMatchStatus::NOT_MATCH)
             {
-                char ch = this->tmp_buf[i];
-                if (log::Lev3()) log::to.Info(ch);
-                this->pressSimpleKey(ch);
+                this->pressSimpleKey(this->tmp_buf[i]);
+                csi_buffer = "";
                 if (this->end)
                 {
                     break;
                 }
-                ++i;
             }
         }
     } while (!this->end);
@@ -198,7 +179,7 @@ bool InputHandler::isPosEscaped(size_t pos) const
 bool InputHandler::isPosEscaped(size_t pos, size_t line) const
 {
     bool escaped = false;
-    size_t tmp_pos = pos - 1;
+    int tmp_pos = pos - 1;
     while (tmp_pos >= 0 && this->input[line].data[tmp_pos] == '\\')
     {
         escaped = !escaped;
@@ -212,37 +193,9 @@ bool InputHandler::isCurPosEscaped() const
     return this->isPosEscaped(this->cur.pos);
 }
 
-std::optional<std::string> InputHandler::lookForCSISequenceInPos(size_t pos)
+void InputHandler::pressCsiSequence(const std::string &csi_seq)
 {
-    size_t rlen = strlen(this->tmp_buf);
-    if (pos >= rlen)
-    {
-        return std::nullopt;
-    }
-    for (const std::string &csi : CSI_seqs)
-    {
-        if (pos + csi.length() <= rlen)
-        {
-            bool eq = true;
-            for (std::size_t j = 2; j < csi.length(); j++)
-            {
-                if (this->tmp_buf[pos + j] != csi[j])
-                {
-                    eq = false;
-                    break;
-                }
-            }
-            if (eq)
-            {
-                return csi;
-            }
-        }
-    }
-    return std::nullopt;
-}
-
-void InputHandler::pressCSIsequence(std::string csi_seq)
-{
+    if (log::Lev3()) log::to.Info(csi_seq);
     if (auto handler = this->keymap.get(csi_seq); handler != std::nullopt)
     {
         (*handler)();
@@ -299,35 +252,18 @@ void InputHandler::pressCSIsequence(std::string csi_seq)
 
 void InputHandler::pressSimpleKey(char ch)
 {
-    
-    auto handler = this->keymap.get(ch, 0);
-    if (ch == csi::BS_KEY_ENTER)
-    {
-        this->rebuildBlocksData(Pos(0, 0));
-        if (handler != std::nullopt && (this->isCurPosEscaped() || !this->blocks.open.empty()))
-        {
-            (*handler)();
-        }
-        else
-        {
-            io.write("\r\n");
-            this->untouched = false;
-            this->end = true;
-        }
-
-    }
-    else if (handler != std::nullopt)
+    if (log::Lev3()) log::to.Info(ch);
+    if (auto handler = this->keymap.get(ch); handler != std::nullopt)
     {
         (*handler)();
     }
-    else switch (ch)
+    else if (std::regex_match(std::string(1, ch), csi::BS_KEY_CTRL_C))
     {
-    case csi::BS_KEY_CTRL_C:
         this->writeChars("^C");
-        break;
-    default:
+    }
+    else
+    {
         this->writeChars(std::string(1, ch));
-        break;
     }
 }
 

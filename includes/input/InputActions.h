@@ -23,11 +23,11 @@ public:
     bool moveCursorDown() const;
     bool removeFromLeft() const;
     bool removeFromRight() const;
-    bool addNewInputLine() const;
     bool autocomplete() const;
-
+    bool newLineOrSubmit() const;
 private:
     void setHistoryItem(size_t n) const;
+    bool addNewInputLine() const;
     bool removeInputLine() const;
     void moveCursorVertically(size_t from, size_t to) const;
 };
